@@ -14,7 +14,6 @@ type Notification = {
   type: "assignment" | "message" | "announcement"
   priority: "high" | "medium" | "low"
   read: boolean
-  snoozed: boolean
   createdAt: Date
 }
 
@@ -26,7 +25,6 @@ const mockNotifications: Notification[] = [
     type: "assignment",
     priority: "high",
     read: false,
-    snoozed: false,
     createdAt: new Date("2025-10-06T08:59:48"),
   },
   {
@@ -36,7 +34,6 @@ const mockNotifications: Notification[] = [
     type: "message",
     priority: "medium",
     read: false,
-    snoozed: false,
     createdAt: new Date("2025-10-06T05:59:48"),
   },
   {
@@ -46,7 +43,6 @@ const mockNotifications: Notification[] = [
     type: "announcement",
     priority: "medium",
     read: false,
-    snoozed: true,
     createdAt: new Date("2025-10-06T09:30:00"),
   },
   {
@@ -56,7 +52,6 @@ const mockNotifications: Notification[] = [
     type: "announcement",
     priority: "low",
     read: false,
-    snoozed: false,
     createdAt: new Date("2025-10-05T14:20:00"),
   },
   {
@@ -66,17 +61,15 @@ const mockNotifications: Notification[] = [
     type: "assignment",
     priority: "low",
     read: true,
-    snoozed: false,
     createdAt: new Date("2025-10-05T10:00:00"),
   },
 ]
 
 export default function NotificationsPage() {
   const [notifications, setNotifications] = useState<Notification[]>(mockNotifications)
-  const [activeTab, setActiveTab] = useState<"unread" | "all" | "snoozed">("unread")
+  const [activeTab, setActiveTab] = useState<"unread" | "all">("unread")
 
   const unreadCount = notifications.filter((n) => !n.read).length
-  const snoozedCount = notifications.filter((n) => n.snoozed).length
   const totalCount = notifications.length
 
   const markAllAsRead = () => {
@@ -85,7 +78,6 @@ export default function NotificationsPage() {
 
   const filteredNotifications = notifications.filter((n) => {
     if (activeTab === "unread") return !n.read
-    if (activeTab === "snoozed") return n.snoozed
     return true
   })
 
@@ -133,18 +125,6 @@ export default function NotificationsPage() {
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-[#666666] mb-1">Snoozed</p>
-                    <p className="text-4xl font-bold text-[#1D1616]">{snoozedCount}</p>
-                  </div>
-                  <Clock className="h-8 w-8 text-[#FFBC4C]" />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-white border-[#DDDDDD]">
-              <CardContent className="pt-6">
-                <div className="flex items-center justify-between">
-                  <div>
                     <p className="text-sm text-[#666666] mb-1">Total</p>
                     <p className="text-4xl font-bold text-[#1D1616]">{totalCount}</p>
                   </div>
@@ -175,16 +155,6 @@ export default function NotificationsPage() {
               }`}
             >
               All ({totalCount})
-            </button>
-            <button
-              onClick={() => setActiveTab("snoozed")}
-              className={`px-4 py-2 text-sm font-medium transition-colors ${
-                activeTab === "snoozed"
-                  ? "text-[#1D1616] border-b-2 border-[#8E1616]"
-                  : "text-[#666666] hover:text-[#1D1616]"
-              }`}
-            >
-              Snoozed ({snoozedCount})
             </button>
           </div>
 

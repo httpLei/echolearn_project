@@ -7,7 +7,8 @@ import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { useAuth } from "@/lib/auth-context"
 import { Button } from "@/components/ui/button"
-import { GraduationCap, LayoutDashboard, Bell, Menu, FileText, Settings } from "lucide-react"
+import Image from "next/image"
+import { LayoutDashboard, Bell, Menu, FileText, Settings } from "lucide-react"
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuth()
@@ -35,8 +36,8 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
         }`}
       >
         {/* Logo */}
-        <div className="h-16 flex items-center gap-2 px-6 border-b border-gray-200">
-          <GraduationCap className="h-6 w-6 text-[#8E1616]" />
+        <div className="h-16 flex items-center gap-3 px-6 border-b border-gray-200">
+          <Image src="/EchoLearnLogo.png" alt="EchoLearn" width={28} height={28} className="object-contain" />
           <span className="text-xl font-bold text-[#1D1616]">EchoLearn</span>
         </div>
 
@@ -84,7 +85,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
               {user?.name?.charAt(0) || "J"}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-[#1D1616] truncate">{user?.name || "John Doe"}</p>
+              <p className="text-sm font-medium text-[#1D1616] truncate">{user?.name || "Jake Sim"}</p>
               <p className="text-xs text-gray-500 truncate">Student</p>
             </div>
           </div>
@@ -114,7 +115,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
               </Link>
             </Button>
 
-            <Button variant="ghost" size="icon" className="text-[#1D1616] hover:bg-gray-100" >
+            <Button variant="ghost" size="icon" className="text-[#1D1616] hover:bg-gray-100">
               <Settings className="h-5 w-5" />
             </Button>
           </div>

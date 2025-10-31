@@ -13,15 +13,11 @@ type Assignment = {
   id: string
   title: string
   description: string
-  dueDate: Date
+  dueDate?: Date | null
   estimatedTime: number // in minutes
   subject: string
   difficulty: "Easy" | "Medium" | "Hard"
   completed: boolean
-  urgency: number
-  difficultyScore: number
-  timeRequired: number
-  importance: number
 }
 
 const mockAssignments: Assignment[] = [
@@ -34,24 +30,16 @@ const mockAssignments: Assignment[] = [
     subject: "CSIT327",
     difficulty: "Hard",
     completed: false,
-    urgency: 95,
-    difficultyScore: 85,
-    timeRequired: 90,
-    importance: 88,
   },
   {
     id: "2",
     title: "Data Visualization",
     description: "Create the pivot tables (label your tables' headers accordingly) below and add/put their charts in a DASHBOARD (1st sheet)",
-    dueDate: new Date("2025-10-07"),
+    dueDate: new Date("2025-11-30"),
     estimatedTime: 120,
     subject: "IT365",
     difficulty: "Medium",
     completed: false,
-    urgency: 75,
-    difficultyScore: 60,
-    timeRequired: 70,
-    importance: 75,
   },
   {
     id: "3",
@@ -62,10 +50,6 @@ const mockAssignments: Assignment[] = [
     subject: "CSIT340",
     difficulty: "Medium",
     completed: false,
-    urgency: 60,
-    difficultyScore: 55,
-    timeRequired: 50,
-    importance: 70,
   },
   {
     id: "4",
@@ -76,24 +60,16 @@ const mockAssignments: Assignment[] = [
     subject: "IT317",
     difficulty: "Easy",
     completed: false,
-    urgency: 100,
-    difficultyScore: 30,
-    timeRequired: 20,
-    importance: 65,
   },
   {
     id: "5",
     title: "Noli Me Tangere Reflection Essay",
     description: "Write a reflection paper discussing the relevance of Noli Me Tangere in today’s society.",
-    dueDate: new Date("2025-10-12"),
+    dueDate: new Date("2025-11-15"),
     estimatedTime: 60,
     subject: "RIZAL103",
     difficulty: "Easy",
     completed: false,
-    urgency: 30,
-    difficultyScore: 25,
-    timeRequired: 35,
-    importance: 60,
   },
 ]
 
@@ -101,7 +77,7 @@ export default function AssignmentsPage() {
   const [assignments, setAssignments] = useState<Assignment[]>(mockAssignments)
   const [searchQuery, setSearchQuery] = useState("")
   const [subjectFilter, setSubjectFilter] = useState("all")
-  const [sortBy, setSortBy] = useState("priority")
+  const [sortBy, setSortBy] = useState("dueDate")
   const [activeTab, setActiveTab] = useState<"all" | "overdue" | "today" | "week" | "upcoming">("all")
 
   const toggleComplete = (id: string) => {
@@ -124,6 +100,9 @@ export default function AssignmentsPage() {
     if (subjectFilter !== "all" && a.subject !== subjectFilter) return false
 
     // Tab filter
+    // If there is no due date, exclude from date-based tabs (only appear under "all")
+    if (!a.dueDate) return activeTab === "all"
+
     const dueDate = new Date(a.dueDate)
     dueDate.setHours(0, 0, 0, 0)
 
@@ -135,18 +114,20 @@ export default function AssignmentsPage() {
     return true
   })
 
-  const overdueCount = assignments.filter((a) => new Date(a.dueDate) < today).length
+  const overdueCount = assignments.filter((a) => a.dueDate && new Date(a.dueDate) < today).length
   const todayCount = assignments.filter((a) => {
+    if (!a.dueDate) return false
     const d = new Date(a.dueDate)
     d.setHours(0, 0, 0, 0)
     return d.getTime() === today.getTime()
   }).length
   const weekCount = assignments.filter((a) => {
+    if (!a.dueDate) return false
     const d = new Date(a.dueDate)
     d.setHours(0, 0, 0, 0)
     return d >= today && d <= weekFromNow
   }).length
-  const upcomingCount = assignments.filter((a) => new Date(a.dueDate) > weekFromNow).length
+  const upcomingCount = assignments.filter((a) => a.dueDate && new Date(a.dueDate) > weekFromNow).length
 
   return (
     <ProtectedRoute allowedRoles={["student"]}>
@@ -204,12 +185,9 @@ export default function AssignmentsPage() {
             <Select value={sortBy} onValueChange={setSortBy}>
               <SelectTrigger className="w-full md:w-[180px] bg-white border-[#CCCCCC] text-[#1D1616]">
                 <ArrowUpDown className="mr-2 h-4 w-4" />
-                <SelectValue placeholder="Priority Score" />
+                <SelectValue placeholder="Due Date" />
               </SelectTrigger>
               <SelectContent className="bg-white border-[#CCCCCC]">
-                {/* <SelectItem value="priority" className="text-[#1D1616]">
-                  Priority Score
-                </SelectItem> */}
                 <SelectItem value="dueDate" className="text-[#1D1616]">
                   Due Date
                 </SelectItem>
@@ -277,7 +255,7 @@ export default function AssignmentsPage() {
           {/* Assignments List */}
           <div className="space-y-4">
             {filteredAssignments.map((assignment) => {
-              const isOverdue = new Date(assignment.dueDate) < today
+              const isOverdue = assignment.dueDate ? new Date(assignment.dueDate) < today : false
 
               return (
                 <Card
@@ -312,12 +290,16 @@ export default function AssignmentsPage() {
                       <div className="flex flex-wrap items-center gap-4 text-sm text-[#666666]">
                         <span className="flex items-center gap-1">
                           <Calendar className="h-4 w-4" />
-                          Due:{" "}
-                          {assignment.dueDate.toLocaleDateString("en-US", {
-                            month: "numeric",
-                            day: "numeric",
-                            year: "numeric",
-                          })}
+                          Due: {" "}
+                          {assignment.dueDate ? (
+                            assignment.dueDate.toLocaleDateString("en-US", {
+                              month: "numeric",
+                              day: "numeric",
+                              year: "numeric",
+                            })
+                          ) : (
+                            <span className="text-[#999999]">No due date</span>
+                          )}
                         </span>
                         <span className="flex items-center gap-1">
                           <Clock className="h-4 w-4" />
@@ -326,40 +308,6 @@ export default function AssignmentsPage() {
                         <span className="px-2 py-1 bg-[#FFF5E1] rounded text-[#8E1616] font-medium">
                           {assignment.subject}
                         </span>
-                      </div>
-
-                      {/* Priority Factors */}
-                      <div>
-                        <p className="text-xs text-[#666666] mb-2">Priority Factors:</p>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                          <div>
-                            <p className="text-xs text-[#1D1616] mb-1">Urgency</p>
-                            <div className="h-2 bg-[#F5F5F5] rounded-full overflow-hidden">
-                              <div className="h-full bg-[#8E1616]" style={{ width: `${assignment.urgency}%` }} />
-                            </div>
-                          </div>
-                          <div>
-                            <p className="text-xs text-[#1D1616] mb-1">Difficulty</p>
-                            <div className="h-2 bg-[#F5F5F5] rounded-full overflow-hidden">
-                              <div
-                                className="h-full bg-[#8E1616]"
-                                style={{ width: `${assignment.difficultyScore}%` }}
-                              />
-                            </div>
-                          </div>
-                          <div>
-                            <p className="text-xs text-[#1D1616] mb-1">Time Required</p>
-                            <div className="h-2 bg-[#F5F5F5] rounded-full overflow-hidden">
-                              <div className="h-full bg-[#8E1616]" style={{ width: `${assignment.timeRequired}%` }} />
-                            </div>
-                          </div>
-                          <div>
-                            <p className="text-xs text-[#1D1616] mb-1">Importance</p>
-                            <div className="h-2 bg-[#F5F5F5] rounded-full overflow-hidden">
-                              <div className="h-full bg-[#8E1616]" style={{ width: `${assignment.importance}%` }} />
-                            </div>
-                          </div>
-                        </div>
                       </div>
 
                       {/* Action Button */}

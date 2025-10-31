@@ -98,21 +98,7 @@ public class Assignment {
         this.estimatedMinutes = estimatedMinutes;
     }
     
-    public Difficulty getDifficulty() {
-        return difficulty;
-    }
     
-    public void setDifficulty(Difficulty difficulty) {
-        this.difficulty = difficulty;
-    }
-    
-    public Integer getPriorityScore() {
-        return priorityScore;
-    }
-    
-    public void setPriorityScore(Integer priorityScore) {
-        this.priorityScore = priorityScore;
-    }
     
     public Boolean getCompleted() {
         return completed;
