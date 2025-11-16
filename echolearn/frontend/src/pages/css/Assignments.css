@@ -97,8 +97,14 @@
   background: white;
   border: 2px solid #DDDDDD;
   border-radius: 8px;
-  padding: 24px;
+  padding: 20px;
   transition: all 0.2s;
+}
+
+.assignment-card:hover {
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.15));
+  transform: translateY(-2px);
+  border-color: #8E1616;
 }
 
 .assignment-card.overdue {
@@ -115,7 +121,7 @@
 
 .assignment-title-section {
   display: flex;
-  gap: 12px;
+  gap: 10px;
   flex: 1;
 }
 
@@ -134,14 +140,14 @@
 
 .assignment-description {
   font-size: 14px;
-  color: #666666;
-  line-height: 1.5;
+  color: #808080;
+  line-height: 1.4;
 }
 
 .difficulty-badge {
-  padding: 6px 12px;
-  border-radius: 4px;
-  font-size: 12px;
+  padding: 6px 16px;
+  border-radius: 6px;
+  font-size: 13px;
   font-weight: 600;
   white-space: nowrap;
   flex-shrink: 0;
@@ -168,7 +174,7 @@
   gap: 16px;
   margin-bottom: 16px;
   font-size: 14px;
-  color: #666666;
+  color: #808080;
 }
 
 .meta-item {

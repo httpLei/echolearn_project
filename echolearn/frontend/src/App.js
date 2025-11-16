@@ -5,6 +5,7 @@ import SignIn from './pages/js/SignIn';
 import SignUp from './pages/js/SignUp';
 import Dashboard from './pages/js/Dashboard';
 import Assignments from './pages/js/Assignments';
+import AssignmentDetail from './pages/js/AssignmentDetail';
 import Notifications from './pages/js/Notifications';
 import './App.css';
 
@@ -38,6 +39,7 @@ function App() {
           <Route path="/signup" element={<SignUp onLogin={handleLogin} />} />
           <Route path="/dashboard" element={user ? <Dashboard user={user} onLogout={handleLogout} /> : <Navigate to="/" />} />
           <Route path="/assignments" element={user ? <Assignments user={user} onLogout={handleLogout} /> : <Navigate to="/" />} />
+          <Route path="/assignments/:id" element={user ? <AssignmentDetail user={user} onLogout={handleLogout} /> : <Navigate to="/" />} />
           <Route path="/notifications" element={user ? <Notifications user={user} onLogout={handleLogout} /> : <Navigate to="/" />} />
         </Routes>
       </div>

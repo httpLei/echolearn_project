@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Layout from '../../components/Layout';
 import { assignmentAPI } from '../../services/api';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../../components/Select';
 import '../css/Assignments.css';
 
 function Assignments({ user, onLogout }) {
+  const navigate = useNavigate();
   const [assignments, setAssignments] = useState([
     {
       activityId: 1,
@@ -30,7 +32,7 @@ function Assignments({ user, onLogout }) {
       activityId: 3,
       title: 'React Component Development',
       description: 'Build a functional React component that displays dynamic user data using props and state.',
-      dueDate: '2025-10-08',
+      dueDate: '2025-11-23',
       estimatedTime: 90,
       subject: 'CSIT340',
       difficulty: 'Medium',
@@ -50,7 +52,7 @@ function Assignments({ user, onLogout }) {
       activityId: 5,
       title: 'Noli Me Tangere Reflection Essay',
       description: 'Write a reflection paper discussing the relevance of Noli Me Tangere in today\'s society.',
-      dueDate: '2025-11-15',
+      dueDate: '2025-11-19',
       estimatedTime: 60,
       subject: 'RIZAL031',
       difficulty: 'Easy',
@@ -212,6 +214,8 @@ function Assignments({ user, onLogout }) {
             <div 
               key={assignment.activityId} 
               className={`assignment-card ${isOverdue(assignment.dueDate) ? 'overdue' : ''}`}
+              onClick={() => navigate(`/assignments/${assignment.activityId}`)}
+              style={{ cursor: 'pointer' }}
             >
               <div className="assignment-header">
                 <div className="assignment-title-section">
