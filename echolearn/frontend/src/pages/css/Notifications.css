@@ -1,6 +1,13 @@
 .notifications-container {
-  max-width: 1000px;
+  max-width: 1400px;
   margin: 0 auto;
+}
+
+.page-title {
+  font-size: 32px;
+  font-weight: 700;
+  color: #1D1616;
+  margin-bottom: 24px;
 }
 
 .notifications-header {
@@ -13,17 +20,18 @@
 .btn-mark-all {
   padding: 10px 20px;
   background-color: white;
-  color: #667eea;
-  border: 2px solid #667eea;
-  border-radius: 8px;
+  color: #8E1616;
+  border: 2px solid #8E1616;
+  border-radius: 12px;
   font-size: 14px;
   font-weight: 600;
+  font-family: 'Poppins', sans-serif;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
 .btn-mark-all:hover {
-  background-color: #667eea;
+  background-color: #8E1616;
   color: white;
 }
 
@@ -38,7 +46,7 @@
   background: white;
   padding: 24px;
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
   display: flex;
   align-items: center;
   gap: 16px;
@@ -54,12 +62,19 @@
   font-size: 24px;
 }
 
+.stat-icon svg {
+  width: 24px;
+  height: 24px;
+}
+
 .unread-icon {
-  background-color: #fff3cd;
+  background-color: #FFE5E5;
+  color: #8E1616;
 }
 
 .total-icon {
-  background-color: #fdd;
+  background-color: #FFF5E1;
+  color: #8E1616;
 }
 
 .stat-info {
@@ -68,43 +83,48 @@
 
 .stat-label {
   font-size: 13px;
-  color: #888;
+  color: #666666;
   margin-bottom: 4px;
+  font-family: 'Poppins', sans-serif;
 }
 
 .stat-value {
   font-size: 28px;
   font-weight: 700;
-  color: #2c2c2c;
+  color: #1D1616;
+  font-family: 'Poppins', sans-serif;
 }
 
 .notification-tabs {
   display: flex;
   gap: 8px;
+  border-bottom: 2px solid #DDDDDD;
   margin-bottom: 24px;
-  border-bottom: 2px solid #e0e0e0;
-  padding-bottom: 8px;
+  flex-wrap: wrap;
 }
 
 .tab {
-  padding: 8px 16px;
+  padding: 12px 16px;
   border: none;
   background: transparent;
   font-size: 14px;
   font-weight: 500;
-  color: #666;
+  font-family: 'Poppins', sans-serif;
+  color: #666666;
   cursor: pointer;
-  border-radius: 6px;
+  white-space: nowrap;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
   transition: all 0.2s;
 }
 
 .tab:hover {
-  background-color: #f5f5f5;
+  color: #1D1616;
 }
 
 .tab.active {
-  color: #8b2e2e;
-  background-color: rgba(139, 46, 46, 0.1);
+  color: #1D1616;
+  border-bottom-color: #8E1616;
 }
 
 .notifications-list {
@@ -121,23 +141,23 @@
 
 .notification-card {
   background: white;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 24px;
+  border-radius: 8px;
+  border: 2px solid #DDDDDD;
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   gap: 16px;
-  transition: all 0.3s ease;
+  transition: all 0.2s;
 }
 
 .notification-card.unread {
-  border-left: 4px solid #667eea;
-  background-color: #f8f9ff;
+  border-left: 4px solid #8E1616;
+  background-color: #FFF5F5;
 }
 
 .notification-card:hover {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
 }
 
 .notification-content {
@@ -145,38 +165,41 @@
 }
 
 .notification-title {
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 600;
-  color: #2c2c2c;
+  color: #1D1616;
   margin-bottom: 8px;
+  font-family: 'Poppins', sans-serif;
 }
 
 .notification-message {
   font-size: 14px;
-  color: #666;
+  color: #666666;
   margin-bottom: 8px;
   line-height: 1.5;
+  font-family: 'Poppins', sans-serif;
 }
 
 .notification-date {
   font-size: 12px;
-  color: #999;
+  color: #999999;
+  font-family: 'Poppins', sans-serif;
 }
 
 .btn-mark-read {
-  padding: 8px 16px;
-  background-color: white;
-  color: #667eea;
-  border: 2px solid #667eea;
-  border-radius: 6px;
-  font-size: 13px;
+  padding: 10px 20px;
+  background-color: #8E1616;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
   font-weight: 600;
+  font-family: 'Poppins', sans-serif;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s;
   white-space: nowrap;
 }
 
 .btn-mark-read:hover {
-  background-color: #667eea;
-  color: white;
+  background-color: #6E1111;
 }
