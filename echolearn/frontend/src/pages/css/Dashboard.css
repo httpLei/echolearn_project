@@ -1,0 +1,58 @@
+.dashboard-container {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.page-title {
+  font-size: 32px;
+  font-weight: 700;
+  color: #2c2c2c;
+  margin-bottom: 30px;
+}
+
+.classes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+}
+
+.class-card {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.class-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.class-header {
+  height: 100px;
+  width: 100%;
+}
+
+.class-body {
+  padding: 20px;
+}
+
+.class-code {
+  font-size: 18px;
+  font-weight: 700;
+  color: #2c2c2c;
+  margin-bottom: 8px;
+}
+
+.class-name {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 8px;
+}
+
+.class-teacher {
+  font-size: 13px;
+  color: #888;
+}
