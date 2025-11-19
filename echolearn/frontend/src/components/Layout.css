@@ -66,10 +66,82 @@
   color: white;
 }
 
+/* Settings Dropdown */
+.settings-dropdown {
+  position: relative;
+}
+
+.settings-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  min-width: 220px;
+  padding: 8px;
+  z-index: 1000;
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.settings-menu-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: #2c2c2c;
+  text-align: left;
+  transition: all 0.2s;
+  font-family: 'Poppins', sans-serif;
+}
+
+.settings-menu-item:hover {
+  background-color: #f5f5f5;
+  color: #8E1616;
+}
+
+.settings-menu-item svg {
+  flex-shrink: 0;
+}
+
+.settings-divider {
+  height: 1px;
+  background-color: #e0e0e0;
+  margin: 8px 0;
+}
+
+.logout-item {
+  color: #dc3545;
+}
+
+.logout-item:hover {
+  background-color: #fff5f5;
+  color: #dc3545;
+}
+
 .main-container {
   display: flex;
   flex: 1;
   overflow: hidden;
+  height: calc(100vh - 60px);
 }
 
 .sidebar {
@@ -79,6 +151,11 @@
   display: flex;
   flex-direction: column;
   padding: 20px 0;
+  position: fixed;
+  left: 0;
+  top: 60px;
+  bottom: 0;
+  overflow: visible;
 }
 
 .sidebar-nav {
@@ -172,4 +249,5 @@
   padding: 24px;
   overflow-y: auto;
   background-color: #f5f5f5;
+  margin-left: 220px;
 }

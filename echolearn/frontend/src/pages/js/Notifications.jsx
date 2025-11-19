@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import Layout from '../../components/Layout';
+import Layout from '../../components/Layout.jsx';
 import { notificationAPI } from '../../services/api';
 import '../css/Notifications.css';
 

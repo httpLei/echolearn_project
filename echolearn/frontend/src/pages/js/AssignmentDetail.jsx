@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import Layout from '../../components/Layout';
+import Layout from '../../components/Layout.jsx';
 import { assignmentAPI } from '../../services/api';
 import '../css/AssignmentDetail.css';
 
@@ -166,6 +166,46 @@ Format:
           { name: 'Noli_Me_Tangere_Summary.pdf', size: '2.1 MB', url: '#' },
           { name: 'Essay_Rubric.pdf', size: '445 KB', url: '#' }
         ]
+      },
+      {
+        activityId: 6,
+        title: 'Linear Regression Activity',
+        description: 'Apply linear regression techniques to analyze and predict data patterns using Python',
+        instructions: `Activity Requirements:
+
+1. Load and explore the provided dataset
+2. Perform data preprocessing and cleaning
+3. Implement linear regression using scikit-learn
+4. Calculate R-squared score and other metrics
+5. Create visualizations showing:
+   - Scatter plot of actual vs predicted values
+   - Residual plot
+   - Regression line
+6. Interpret your results and findings
+
+Submission Requirements:
+- Jupyter Notebook (.ipynb) with code and markdown explanations
+- Include all visualizations
+- Write a summary of your findings (minimum 300 words)
+- Submit the dataset used (if not the provided one)
+
+Grading Criteria:
+- Code correctness and efficiency (40%)
+- Visualizations quality (30%)
+- Analysis and interpretation (20%)
+- Documentation and clarity (10%)`,
+        dueDate: '2025-11-15',
+        estimatedTime: 150,
+        subject: 'IT365',
+        difficulty: 'Medium',
+        points: 85,
+        professor: 'Joemarie C. Amparo',
+        completed: false,
+        allowLateSubmission: true,
+        attachments: [
+          { name: 'Dataset.csv', size: '1.2 MB', url: '#' },
+          { name: 'Linear_Regression_Guide.pdf', size: '3.5 MB', url: '#' }
+        ]
       }
     ];
 
@@ -174,6 +214,17 @@ Format:
     
     if (foundAssignment) {
       setAssignment(foundAssignment);
+      
+      // Check if assignment is completed and load submission data
+      const completedAssignments = JSON.parse(localStorage.getItem('completedAssignments') || '[]');
+      if (completedAssignments.includes(parseInt(id))) {
+        const submissions = JSON.parse(localStorage.getItem('submissions') || '{}');
+        const savedSubmission = submissions[id];
+        if (savedSubmission) {
+          setSubmission(savedSubmission);
+          setSubmissionText(savedSubmission.text || '');
+        }
+      }
     } else {
       // If assignment not found, redirect back to assignments page
       navigate('/assignments');
@@ -201,6 +252,24 @@ Format:
       };
       
       setSubmission(newSubmission);
+      
+      // Save to localStorage - completed assignments
+      const completedAssignments = JSON.parse(localStorage.getItem('completedAssignments') || '[]');
+      if (!completedAssignments.includes(parseInt(id))) {
+        completedAssignments.push(parseInt(id));
+        localStorage.setItem('completedAssignments', JSON.stringify(completedAssignments));
+      }
+      
+      // Save submission details
+      const submissions = JSON.parse(localStorage.getItem('submissions') || '{}');
+      submissions[id] = {
+        submittedAt: newSubmission.submittedAt,
+        text: submissionText,
+        fileNames: selectedFiles.map(f => f.name),
+        status: 'Submitted'
+      };
+      localStorage.setItem('submissions', JSON.stringify(submissions));
+      
       alert('Assignment submitted successfully!');
     } catch (error) {
       console.error('Error submitting assignment:', error);
@@ -376,16 +445,16 @@ Format:
                     <p>Submitted on {formatDate(submission.submittedAt)}</p>
                   </div>
                   
-                  {submission.files.length > 0 && (
+                  {(submission.files?.length > 0 || submission.fileNames?.length > 0) && (
                     <div className="submitted-files">
                       <h4>Submitted Files:</h4>
-                      {submission.files.map((file, index) => (
+                      {(submission.fileNames || submission.files.map(f => f.name)).map((fileName, index) => (
                         <div key={index} className="submitted-file-item">
                           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                             <polyline points="14 2 14 8 20 8"></polyline>
                           </svg>
-                          <span>{file.name}</span>
+                          <span>{fileName}</span>
                         </div>
                       ))}
                     </div>
@@ -398,7 +467,20 @@ Format:
                     </div>
                   )}
                   
-                  <button className="btn-secondary" onClick={() => setSubmission(null)}>
+                  <button className="btn-secondary" onClick={() => {
+                    setSubmission(null);
+                    setSubmissionText('');
+                    setSelectedFiles([]);
+                    // Remove from localStorage - completed assignments
+                    const completedAssignments = JSON.parse(localStorage.getItem('completedAssignments') || '[]');
+                    const updatedCompleted = completedAssignments.filter(aid => aid !== parseInt(id));
+                    localStorage.setItem('completedAssignments', JSON.stringify(updatedCompleted));
+                    
+                    // Remove submission details
+                    const submissions = JSON.parse(localStorage.getItem('submissions') || '{}');
+                    delete submissions[id];
+                    localStorage.setItem('submissions', JSON.stringify(submissions));
+                  }}>
                     Unsubmit and Edit
                   </button>
                 </div>

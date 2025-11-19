@@ -1,12 +1,12 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import Welcome from './pages/js/Welcome';
-import SignIn from './pages/js/SignIn';
-import SignUp from './pages/js/SignUp';
-import Dashboard from './pages/js/Dashboard';
-import Assignments from './pages/js/Assignments';
-import AssignmentDetail from './pages/js/AssignmentDetail';
-import Notifications from './pages/js/Notifications';
+import Welcome from './pages/js/Welcome.jsx';
+import SignIn from './pages/js/SignIn.jsx';
+import SignUp from './pages/js/SignUp.jsx';
+import Dashboard from './pages/js/Dashboard.jsx';
+import Assignments from './pages/js/Assignments.jsx';
+import AssignmentDetail from './pages/js/AssignmentDetail.jsx';
+import Notifications from './pages/js/Notifications.jsx';
 import './App.css';
 
 function App() {

@@ -69,6 +69,17 @@ public class DataInitializer implements CommandLineRunner {
         assignment3.setUser(student1);
         assignmentRepository.save(assignment3);
         
+        Assignment assignment4 = new Assignment(
+            "Linear Regression Activity",
+            "Apply linear regression techniques to analyze and predict data patterns using Python",
+            LocalDate.of(2025, 11, 15),
+            "IT365",
+            150,
+            "MEDIUM"
+        );
+        assignment4.setUser(student1);
+        assignmentRepository.save(assignment4);
+        
         // Create sample notifications for student1
         Notification notification1 = new Notification(
             "Assignment Due Soon",

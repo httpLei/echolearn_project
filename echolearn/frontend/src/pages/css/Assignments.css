@@ -195,37 +195,6 @@
   font-weight: 500;
 }
 
-.assignment-actions {
-  display: flex;
-  justify-content: flex-end;
-}
-
-.btn-complete {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 20px;
-  background-color: #8E1616;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  font-family: 'Poppins', sans-serif;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn-complete:hover {
-  background-color: #6E1111;
-}
-
-.btn-complete:disabled {
-  background-color: #FFBC4C;
-  color: #1D1616;
-  cursor: not-allowed;
-}
-
 @media (max-width: 768px) {
   .assignments-controls {
     flex-direction: column;

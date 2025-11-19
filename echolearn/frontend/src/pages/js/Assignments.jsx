@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Layout from '../../components/Layout';
+import Layout from '../../components/Layout.jsx';
 import { assignmentAPI } from '../../services/api';
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../../components/Select';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../../components/Select.jsx';
 import '../css/Assignments.css';
 
 function Assignments({ user, onLogout }) {
@@ -57,6 +57,16 @@ function Assignments({ user, onLogout }) {
       subject: 'RIZAL031',
       difficulty: 'Easy',
       completed: false
+    },
+    {
+      activityId: 6,
+      title: 'Linear Regression Activity',
+      description: 'Apply linear regression techniques to analyze and predict data patterns using Python',
+      dueDate: '2025-11-15',
+      estimatedTime: 150,
+      subject: 'IT365',
+      difficulty: 'Medium',
+      completed: false
     }
   ]);
 
@@ -65,11 +75,16 @@ function Assignments({ user, onLogout }) {
   const [subjectFilter, setSubjectFilter] = useState('all');
   const [sortBy, setSortBy] = useState('dueDate');
 
-  const handleMarkComplete = (id) => {
-    setAssignments(assignments.map(a => 
-      a.activityId === id ? { ...a, completed: !a.completed } : a
-    ));
-  };
+  // Load completed assignments from localStorage
+  useEffect(() => {
+    const completedAssignments = JSON.parse(localStorage.getItem('completedAssignments') || '[]');
+    setAssignments(prevAssignments => 
+      prevAssignments.map(a => ({
+        ...a,
+        completed: completedAssignments.includes(a.activityId)
+      }))
+    );
+  }, []);
 
   // Calculate counts for tabs
   const today = new Date();
@@ -89,6 +104,7 @@ function Assignments({ user, onLogout }) {
     return d >= today && d <= weekFromNow;
   }).length;
   const upcomingCount = assignments.filter(a => new Date(a.dueDate) > weekFromNow).length;
+  const completedCount = assignments.filter(a => a.completed).length;
 
   // Filter assignments
   const filteredAssignments = assignments.filter(assignment => {
@@ -106,12 +122,28 @@ function Assignments({ user, onLogout }) {
     const dueDate = new Date(assignment.dueDate);
     dueDate.setHours(0, 0, 0, 0);
 
+    if (activeTab === 'completed') return assignment.completed;
+    
+    // Don't show completed assignments in other tabs
+    if (assignment.completed && activeTab !== 'completed') return false;
+    
     if (activeTab === 'overdue' && dueDate >= today) return false;
     if (activeTab === 'today' && dueDate.getTime() !== today.getTime()) return false;
     if (activeTab === 'week' && (dueDate < today || dueDate > weekFromNow)) return false;
     if (activeTab === 'upcoming' && dueDate <= weekFromNow) return false;
 
     return true;
+  });
+
+  // Sort assignments
+  const sortedAssignments = [...filteredAssignments].sort((a, b) => {
+    if (sortBy === 'dueDate') {
+      return new Date(a.dueDate) - new Date(b.dueDate);
+    } else if (sortBy === 'difficulty') {
+      const difficultyOrder = { 'Hard': 3, 'Medium': 2, 'Easy': 1 };
+      return difficultyOrder[b.difficulty] - difficultyOrder[a.difficulty];
+    }
+    return 0;
   });
 
   const isOverdue = (dueDate) => {
@@ -207,10 +239,16 @@ function Assignments({ user, onLogout }) {
           >
             Upcoming ({upcomingCount})
           </button>
+          <button 
+            className={`tab ${activeTab === 'completed' ? 'active' : ''}`}
+            onClick={() => setActiveTab('completed')}
+          >
+            Completed ({completedCount})
+          </button>
         </div>
 
         <div className="assignments-list">
-          {filteredAssignments.map((assignment) => (
+          {sortedAssignments.map((assignment) => (
             <div 
               key={assignment.activityId} 
               className={`assignment-card ${isOverdue(assignment.dueDate) ? 'overdue' : ''}`}
@@ -254,19 +292,6 @@ function Assignments({ user, onLogout }) {
                   {assignment.estimatedTime} min
                 </span>
                 <span className="subject-tag">{assignment.subject}</span>
-              </div>
-              
-              <div className="assignment-actions">
-                <button 
-                  className="btn-complete"
-                  onClick={() => handleMarkComplete(assignment.activityId)}
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                  </svg>
-                  Mark Complete
-                </button>
               </div>
             </div>
           ))}
