@@ -7,6 +7,7 @@ import Dashboard from './pages/js/Dashboard.jsx';
 import Assignments from './pages/js/Assignments.jsx';
 import AssignmentDetail from './pages/js/AssignmentDetail.jsx';
 import Notifications from './pages/js/Notifications.jsx';
+import Chat from './pages/js/Chat.jsx';
 import './App.css';
 
 function App() {
@@ -41,6 +42,7 @@ function App() {
           <Route path="/assignments" element={user ? <Assignments user={user} onLogout={handleLogout} /> : <Navigate to="/" />} />
           <Route path="/assignments/:id" element={user ? <AssignmentDetail user={user} onLogout={handleLogout} /> : <Navigate to="/" />} />
           <Route path="/notifications" element={user ? <Notifications user={user} onLogout={handleLogout} /> : <Navigate to="/" />} />
+          <Route path="/chat" element={user ? <Chat user={user} onLogout={handleLogout} /> : <Navigate to="/" />} />
         </Routes>
       </div>
     </Router>

@@ -35,4 +35,13 @@ export const notificationAPI = {
   delete: (id) => api.delete(`/notifications/${id}`),
 };
 
+// Chat API
+export const chatAPI = {
+  getChannelMessages: (channelName) => api.get(`/chats/channel/${channelName}`),
+  getSideChats: (chatId) => api.get(`/chats/${chatId}/sidechats`),
+  sendMessage: (message) => api.post('/chats', message),
+  editMessage: (chatId, content) => api.put(`/chats/${chatId}`, { content }),
+  deleteMessage: (chatId) => api.delete(`/chats/${chatId}`),
+};
+
 export default api;
