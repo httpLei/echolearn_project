@@ -8,6 +8,7 @@ import Assignments from './pages/jsx/Assignments.jsx';
 import AssignmentDetail from './pages/jsx/AssignmentDetail.jsx';
 import Notifications from './pages/jsx/Notifications.jsx';
 import Chat from './pages/jsx/Chat.jsx';
+import Calendar from './pages/jsx/Calendar.jsx';
 import './App.css';
 
 function App() {
@@ -42,6 +43,7 @@ function App() {
           <Route path="/assignments" element={user ? <Assignments user={user} onLogout={handleLogout} /> : <Navigate to="/" />} />
           <Route path="/assignments/:id" element={user ? <AssignmentDetail user={user} onLogout={handleLogout} /> : <Navigate to="/" />} />
           <Route path="/notifications" element={user ? <Notifications user={user} onLogout={handleLogout} /> : <Navigate to="/" />} />
+          <Route path="/calendar" element={user ? <Calendar user={user} onLogout={handleLogout} /> : <Navigate to="/" />} />
           <Route path="/chat" element={user ? <Chat user={user} onLogout={handleLogout} /> : <Navigate to="/" />} />
         </Routes>
       </div>

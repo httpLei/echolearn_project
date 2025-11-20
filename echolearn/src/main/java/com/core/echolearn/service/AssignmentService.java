@@ -1,14 +1,17 @@
 package com.core.echolearn.service;
 
-import com.core.echolearn.entity.Assignment;
-import com.core.echolearn.entity.User;
-import com.core.echolearn.repository.AssignmentRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.core.echolearn.dto.CalendarEventDTO;
+import com.core.echolearn.entity.Assignment;
+import com.core.echolearn.entity.User;
+import com.core.echolearn.repository.AssignmentRepository;
 
 @Service
 public class AssignmentService {
@@ -64,5 +67,27 @@ public class AssignmentService {
     
     public void deleteAssignment(Long id) {
         assignmentRepository.deleteById(id);
+    }
+
+    public List<CalendarEventDTO> getCalendarEventsForUser(User user) {
+        List<Assignment> assignments = assignmentRepository.findByUserOrderByDueDateAsc(user);
+
+        // Map Assignments to CalendarEventDTOs
+        List<CalendarEventDTO> assignmentEvents = assignments.stream()
+            .filter(a -> a.getDueDate() != null) // Only include assignments with a due date
+            .map(a -> new CalendarEventDTO(
+                a.getActivityId(),
+                a.getTitle() + " (Due)",
+                a.getDueDate().atStartOfDay(), // Convert LocalDate to start of day LocalDateTime
+                a.getDueDate().atStartOfDay().plusHours(2), // Give it a 2-hour span for visualization
+                "ASSIGNMENT",
+                a.getCompleted()
+            ))
+            .collect(Collectors.toList());
+
+        // Note: You would typically integrate Notification events here as well.
+        // For simplicity, we are only including Assignments for now.
+
+        return assignmentEvents;
     }
 }

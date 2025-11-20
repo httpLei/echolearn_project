@@ -170,7 +170,10 @@ function Layout({ children, user, onLogout, activePage }) {
               </svg>
               <span className="nav-text">Chat</span>
             </button>
-            <button className="nav-item">
+            <button 
+              className={`nav-item ${activePage === 'calendar' ? 'active' : ''}`}
+              onClick={() => navigate('/calendar')}
+            >
               <svg className="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
                 <line x1="16" y1="2" x2="16" y2="6"></line>
