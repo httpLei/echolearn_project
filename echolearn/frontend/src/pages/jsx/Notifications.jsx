@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Layout from '../../components/Layout.jsx';
-import { notificationAPI } from '../../services/api';
+import { notificationAPI } from '../../services/api.js';
 import '../css/Notifications.css';
 
 function Notifications({ user, onLogout }) {

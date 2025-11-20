@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Layout from '../../components/Layout.jsx';
-import { assignmentAPI } from '../../services/api';
+import { assignmentAPI } from '../../services/api.js';
 import '../css/AssignmentDetail.css';
 
 function AssignmentDetail({ user, onLogout }) {

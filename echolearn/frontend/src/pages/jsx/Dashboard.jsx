@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '../../components/Layout.jsx';
-import { assignmentAPI } from '../../services/api';
+import { assignmentAPI } from '../../services/api.js';
 import '../css/Dashboard.css';
 
 function Dashboard({ user, onLogout }) {
