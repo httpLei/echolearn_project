@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Layout from '../../components/Layout.jsx';
 import { notificationAPI } from '../../services/api';
 import '../css/Notifications.css';
@@ -36,12 +36,44 @@ function Notifications({ user, onLogout }) {
       createdAt: '2025-10-05T14:20:00',
       isRead: false,
       type: 'ANNOUNCEMENT'
+    },
+    {
+      notifId: 5,
+      title: 'Event Reminder',
+      message: 'CCS Acquaintance Party starts at 5:00 PM today',
+      createdAt: '2025-10-28T12:00:00',
+      isRead: false,
+      type: 'ANNOUNCEMENT'
+    },
+    {
+      notifId: 6,
+      title: 'New Announcement',
+      message: 'The Final Project Guidelines have been uploaded to the class',
+      createdAt: '2025-11-13T18:00:00',
+      isRead: false,
+      type: 'ANNOUNCEMENT'
     }
   ]);
 
   const [filter, setFilter] = useState('Unread');
+  const [openMenuId, setOpenMenuId] = useState(null);
+  const menuRef = useRef(null);
   const unreadCount = notifications.filter(n => !n.isRead).length;
   const totalCount = notifications.length;
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setOpenMenuId(null);
+      }
+    }
+
+    if (openMenuId !== null) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [openMenuId]);
 
   const handleMarkAsRead = async (id) => {
     try {
@@ -61,6 +93,22 @@ function Notifications({ user, onLogout }) {
     } catch (error) {
       console.error('Error marking all notifications as read:', error);
     }
+  };
+
+  const handleDeleteNotification = async (id) => {
+    if (window.confirm('Are you sure you want to delete this notification?')) {
+      try {
+        await notificationAPI.delete(id);
+        setNotifications(notifications.filter(n => n.notifId !== id));
+        setOpenMenuId(null);
+      } catch (error) {
+        console.error('Error deleting notification:', error);
+      }
+    }
+  };
+
+  const toggleMenu = (id) => {
+    setOpenMenuId(openMenuId === id ? null : id);
   };
 
   const formatDate = (dateString) => {
@@ -149,14 +197,45 @@ function Notifications({ user, onLogout }) {
                   <p className="notification-message">{notification.message}</p>
                   <p className="notification-date">{formatDate(notification.createdAt)}</p>
                 </div>
-                {!notification.isRead && (
-                  <button 
-                    className="btn-mark-read"
-                    onClick={() => handleMarkAsRead(notification.notifId)}
-                  >
-                    Mark as Read
-                  </button>
-                )}
+                <div className="notification-actions">
+                  {!notification.isRead && (
+                    <button 
+                      className="btn-mark-read"
+                      onClick={() => handleMarkAsRead(notification.notifId)}
+                    >
+                      Mark as Read
+                    </button>
+                  )}
+                  <div className="notification-menu" ref={openMenuId === notification.notifId ? menuRef : null}>
+                    <button 
+                      className="btn-menu"
+                      onClick={() => toggleMenu(notification.notifId)}
+                      title="More options"
+                    >
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <circle cx="12" cy="12" r="1"></circle>
+                        <circle cx="12" cy="5" r="1"></circle>
+                        <circle cx="12" cy="19" r="1"></circle>
+                      </svg>
+                    </button>
+                    {openMenuId === notification.notifId && (
+                      <div className="menu-dropdown">
+                        <button 
+                          className="menu-item delete-item"
+                          onClick={() => handleDeleteNotification(notification.notifId)}
+                        >
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                            <line x1="10" y1="11" x2="10" y2="17"></line>
+                            <line x1="14" y1="11" x2="14" y2="17"></line>
+                          </svg>
+                          <span>Delete</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
             ))
           )}

@@ -78,23 +78,29 @@ Submission Requirements:
       },
       {
         activityId: 3,
-        title: 'React Component Development',
-        description: 'Build a functional React component that displays dynamic user data using props and state.',
-        instructions: `Create a React Application:
+        title: 'Project ERD Design',
+        description: 'Design a comprehensive Entity-Relationship Diagram (ERD) for your capstone project database schema.',
+        instructions: `ERD Requirements:
 
-1. Set up a new React project using Create React App
-2. Create a UserCard component that accepts props
-3. Implement state management for user interactions
-4. Add proper styling using CSS modules or styled-components
-5. Implement at least one lifecycle method or hook
-6. Include error handling and loading states
+1. Identify all entities (minimum 8 entities required)
+2. Define attributes for each entity with appropriate data types
+3. Establish relationships between entities (one-to-one, one-to-many, many-to-many)
+4. Specify primary keys and foreign keys
+5. Include cardinality and participation constraints
+6. Apply normalization rules (at least 3NF)
+7. Document business rules and assumptions
 
-Component Requirements:
-- Display user avatar, name, email, and bio
-- Include interactive elements (buttons, forms, etc.)
-- Implement proper prop validation
-- Write clean, documented code`,
-        dueDate: '2025-10-08',
+Deliverables:
+- ERD diagram using proper notation (Crow's Foot or Chen notation)
+- Data dictionary with all entities, attributes, and data types
+- Written explanation of relationships and constraints (300-500 words)
+- Normalization justification document
+
+Tools:
+- Use any ERD tool (Draw.io, Lucidchart, MySQL Workbench, etc.)
+- Submit as PDF with clear, readable diagrams
+- Include entity names in UPPERCASE and attributes in lowercase`,
+        dueDate: '2025-11-23',
         estimatedTime: 90,
         subject: 'CSIT340',
         difficulty: 'Medium',
@@ -103,7 +109,8 @@ Component Requirements:
         completed: false,
         allowLateSubmission: true,
         attachments: [
-          { name: 'React_Guidelines.pdf', size: '1.8 MB', url: '#' }
+          { name: 'ERD_Guidelines.pdf', size: '1.8 MB', url: '#' },
+          { name: 'Sample_ERD.pdf', size: '945 KB', url: '#' }
         ]
       },
       {
@@ -549,7 +556,7 @@ Grading Criteria:
                       onClick={handleSubmit}
                       disabled={isSubmitting || (selectedFiles.length === 0 && !submissionText.trim())}
                     >
-                      {isSubmitting ? 'Submitting...' : 'Turn in'}
+                      {isSubmitting ? 'Submitting...' : 'Submit'}
                     </button>
                     <button 
                       className="btn-cancel"

@@ -30,8 +30,8 @@ function Assignments({ user, onLogout }) {
     },
     {
       activityId: 3,
-      title: 'React Component Development',
-      description: 'Build a functional React component that displays dynamic user data using props and state.',
+      title: 'Project ERD Design',
+      description: 'Design a comprehensive Entity-Relationship Diagram (ERD) for your capstone project database schema.',
       dueDate: '2025-11-23',
       estimatedTime: 90,
       subject: 'CSIT340',
