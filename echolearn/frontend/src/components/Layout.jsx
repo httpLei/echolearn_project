@@ -6,7 +6,16 @@ import logo from '../images/EchoLearnLogo.png';
 function Layout({ children, user, onLogout, activePage }) {
   const navigate = useNavigate();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [theme, setTheme] = useState(() => {
+    return localStorage.getItem('theme') || 'light';
+  });
   const settingsRef = useRef(null);
+
+  // Apply theme on mount and when it changes
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+  }, [theme]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -21,6 +30,11 @@ function Layout({ children, user, onLogout, activePage }) {
       return () => document.removeEventListener('mousedown', handleClickOutside);
     }
   }, [isSettingsOpen]);
+
+  const handleThemeToggle = () => {
+    setTheme(prevTheme => prevTheme === 'light' ? 'dark' : 'light');
+    setIsSettingsOpen(false);
+  };
 
   const handleLogout = () => {
     const confirmLogout = window.confirm('Are you sure you want to logout?');
@@ -74,11 +88,25 @@ function Layout({ children, user, onLogout, activePage }) {
                   </svg>
                   <span>Archive</span>
                 </button>
-                <button className="settings-menu-item" onClick={() => setIsSettingsOpen(false)}>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                  </svg>
-                  <span>Theme</span>
+                <button className="settings-menu-item" onClick={handleThemeToggle}>
+                  {theme === 'light' ? (
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                  ) : (
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <circle cx="12" cy="12" r="5"></circle>
+                      <line x1="12" y1="1" x2="12" y2="3"></line>
+                      <line x1="12" y1="21" x2="12" y2="23"></line>
+                      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                      <line x1="1" y1="12" x2="3" y2="12"></line>
+                      <line x1="21" y1="12" x2="23" y2="12"></line>
+                      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                  )}
+                  <span>Theme: {theme === 'light' ? 'Dark' : 'Light'}</span>
                 </button>
                 <div className="settings-divider"></div>
                 <button className="settings-menu-item logout-item" onClick={handleLogout}>

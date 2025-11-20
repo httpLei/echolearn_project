@@ -7,7 +7,7 @@ import '../css/Assignments.css';
 
 function Assignments({ user, onLogout }) {
   const navigate = useNavigate();
-  const [assignments, setAssignments] = useState([
+  const [assignments, setAssignments] = useState([  //crud create assignments
     {
       activityId: 1,
       title: 'Familiarizing GIT and Python Django',

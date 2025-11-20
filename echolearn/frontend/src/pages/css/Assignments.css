@@ -6,8 +6,9 @@
 .page-title {
   font-size: 32px;
   font-weight: 700;
-  color: #1D1616;
+  color: var(--text-primary);
   margin-bottom: 24px;
+  transition: color 0.3s ease;
 }
 
 .assignments-controls {
@@ -28,17 +29,20 @@
   left: 12px;
   top: 50%;
   transform: translateY(-50%);
-  color: #666666;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
 }
 
 .search-input {
   width: 100%;
   padding: 10px 12px 10px 40px;
-  border: 1px solid #CCCCCC;
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   font-size: 14px;
   font-family: 'Poppins', sans-serif;
-  background-color: white;
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  transition: all 0.3s ease;
 }
 
 .search-input:focus {
@@ -58,9 +62,10 @@
 .assignment-tabs {
   display: flex;
   gap: 8px;
-  border-bottom: 2px solid #DDDDDD;
+  border-bottom: 2px solid var(--border-color);
   margin-bottom: 24px;
   flex-wrap: wrap;
+  transition: border-color 0.3s ease;
 }
 
 .tab {
@@ -70,7 +75,7 @@
   font-size: 14px;
   font-weight: 500;
   font-family: 'Poppins', sans-serif;
-  color: #666666;
+  color: var(--text-secondary);
   cursor: pointer;
   white-space: nowrap;
   border-bottom: 2px solid transparent;
@@ -79,11 +84,11 @@
 }
 
 .tab:hover {
-  color: #1D1616;
+  color: var(--text-primary);
 }
 
 .tab.active {
-  color: #1D1616;
+  color: var(--text-primary);
   border-bottom-color: #8E1616;
 }
 
@@ -94,15 +99,15 @@
 }
 
 .assignment-card {
-  background: white;
-  border: 2px solid #DDDDDD;
+  background: var(--bg-secondary);
+  border: 2px solid var(--border-color);
   border-radius: 8px;
   padding: 20px;
   transition: all 0.2s;
 }
 
 .assignment-card:hover {
-  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.15));
+  filter: drop-shadow(0 4px 12px var(--shadow));
   transform: translateY(-2px);
   border-color: #8E1616;
 }
@@ -134,14 +139,16 @@
 .assignment-title {
   font-size: 18px;
   font-weight: 600;
-  color: #1D1616;
+  color: var(--text-primary);
   margin-bottom: 8px;
+  transition: color 0.3s ease;
 }
 
 .assignment-description {
   font-size: 14px;
-  color: #808080;
+  color: var(--text-secondary);
   line-height: 1.4;
+  transition: color 0.3s ease;
 }
 
 .difficulty-badge {
@@ -174,7 +181,8 @@
   gap: 16px;
   margin-bottom: 16px;
   font-size: 14px;
-  color: #808080;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
 }
 
 .meta-item {

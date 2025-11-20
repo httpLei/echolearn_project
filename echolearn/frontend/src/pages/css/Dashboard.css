@@ -6,8 +6,9 @@
 .page-title {
   font-size: 32px;
   font-weight: 700;
-  color: #2c2c2c;
+  color: var(--text-primary);
   margin-bottom: 30px;
+  transition: color 0.3s ease;
 }
 
 .classes-grid {
@@ -17,17 +18,17 @@
 }
 
 .class-card {
-  background: white;
+  background: var(--bg-secondary);
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px var(--shadow);
   transition: all 0.3s ease;
   cursor: pointer;
 }
 
 .class-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 16px var(--shadow);
 }
 
 .class-header {
@@ -42,17 +43,20 @@
 .class-code {
   font-size: 18px;
   font-weight: 700;
-  color: #2c2c2c;
+  color: var(--text-primary);
   margin-bottom: 8px;
+  transition: color 0.3s ease;
 }
 
 .class-name {
   font-size: 14px;
-  color: #666;
+  color: var(--text-secondary);
   margin-bottom: 8px;
+  transition: color 0.3s ease;
 }
 
 .class-teacher {
   font-size: 13px;
-  color: #888;
+  color: var(--text-tertiary);
+  transition: color 0.3s ease;
 }

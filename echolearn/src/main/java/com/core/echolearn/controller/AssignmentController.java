@@ -24,7 +24,7 @@ public class AssignmentController {
     private UserService userService;
     
     @GetMapping("/user/{userId}")
-    public ResponseEntity<?> getAssignmentsByUser(@PathVariable Long userId) {
+    public ResponseEntity<?> getAssignmentsByUser(@PathVariable Long userId) { //get all the assignements of a user
         try {
             Optional<User> userOpt = userService.findById(userId);
             if (!userOpt.isPresent()) {

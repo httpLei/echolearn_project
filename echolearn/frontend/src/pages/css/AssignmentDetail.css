@@ -10,7 +10,7 @@
   padding: 8px 16px;
   background: transparent;
   border: none;
-  color: #666666;
+  color: var(--text-secondary);
   font-size: 14px;
   font-weight: 500;
   font-family: 'Poppins', sans-serif;
@@ -30,7 +30,8 @@
   gap: 24px;
   margin-bottom: 24px;
   padding-bottom: 24px;
-  border-bottom: 2px solid #DDDDDD;
+  border-bottom: 2px solid var(--border-color);
+  transition: border-color 0.3s ease;
 }
 
 .header-left {
@@ -40,9 +41,10 @@
 .detail-assignment-title {
   font-size: 32px;
   font-weight: 700;
-  color: #1D1616;
+  color: var(--text-primary);
   margin-bottom: 16px;
   font-family: 'Poppins', sans-serif;
+  transition: color 0.3s ease;
 }
 
 .assignment-meta {
@@ -50,7 +52,8 @@
   flex-wrap: wrap;
   gap: 16px;
   font-size: 14px;
-  color: #666666;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
 }
 
 .meta-item {
@@ -76,21 +79,24 @@
 .points-badge {
   text-align: center;
   padding: 12px 20px;
-  background-color: #F5F5F5;
+  background-color: var(--border-color);
   border-radius: 8px;
+  transition: background-color 0.3s ease;
 }
 
 .points-value {
   font-size: 28px;
   font-weight: 700;
-  color: #1D1616;
+  color: var(--text-primary);
   font-family: 'Poppins', sans-serif;
+  transition: color 0.3s ease;
 }
 
 .points-label {
   font-size: 12px;
-  color: #666666;
+  color: var(--text-secondary);
   font-family: 'Poppins', sans-serif;
+  transition: color 0.3s ease;
 }
 
 .difficulty-badge {
@@ -153,36 +159,40 @@
 }
 
 .section-card {
-  background: white;
-  border: 2px solid #DDDDDD;
+  background: var(--bg-secondary);
+  border: 2px solid var(--border-color);
   border-radius: 8px;
   padding: 24px;
+  transition: all 0.3s ease;
 }
 
 .section-title {
   font-size: 20px;
   font-weight: 600;
-  color: #1D1616;
+  color: var(--text-primary);
   margin-bottom: 16px;
   display: flex;
   align-items: center;
   gap: 8px;
   font-family: 'Poppins', sans-serif;
+  transition: color 0.3s ease;
 }
 
 .description-text {
   font-size: 14px;
-  color: #666666;
+  color: var(--text-secondary);
   line-height: 1.6;
   font-family: 'Poppins', sans-serif;
+  transition: color 0.3s ease;
 }
 
 .instructions-text {
   font-size: 14px;
-  color: #666666;
+  color: var(--text-secondary);
   line-height: 1.8;
   font-family: 'Poppins', sans-serif;
   white-space: pre-wrap;
+  transition: color 0.3s ease;
 }
 
 .instructions-text p {
@@ -200,15 +210,16 @@
   align-items: center;
   gap: 12px;
   padding: 12px 16px;
-  background-color: #F5F5F5;
+  background-color: var(--border-color);
   border-radius: 8px;
   text-decoration: none;
-  color: #1D1616;
+  color: var(--text-primary);
   transition: all 0.2s;
 }
 
 .attachment-item:hover {
-  background-color: #EEEEEE;
+  background-color: var(--border-color);
+  filter: brightness(0.9);
 }
 
 .attachment-info {
@@ -219,17 +230,21 @@
   font-size: 14px;
   font-weight: 500;
   font-family: 'Poppins', sans-serif;
+  color: var(--text-primary);
+  transition: color 0.3s ease;
 }
 
 .attachment-size {
   font-size: 12px;
-  color: #666666;
+  color: var(--text-secondary);
   font-family: 'Poppins', sans-serif;
+  transition: color 0.3s ease;
 }
 
 .submission-section {
-  background: #F9F9F9;
-  border: 2px solid #DDDDDD;
+  background: var(--bg-secondary);
+  border: 2px solid var(--border-color);
+  transition: all 0.3s ease;
 }
 
 .submission-form {
@@ -247,19 +262,23 @@
 .form-group label {
   font-size: 14px;
   font-weight: 600;
-  color: #1D1616;
+  color: var(--text-primary);
   font-family: 'Poppins', sans-serif;
+  transition: color 0.3s ease;
 }
 
 .submission-textarea {
   width: 100%;
   padding: 12px 16px;
-  border: 2px solid #DDDDDD;
+  border: 2px solid var(--border-color);
   border-radius: 8px;
   font-size: 14px;
   font-family: 'Poppins', sans-serif;
   resize: vertical;
   min-height: 100px;
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  transition: all 0.3s ease;
 }
 
 .submission-textarea:focus {
@@ -273,9 +292,9 @@
   align-items: center;
   gap: 8px;
   padding: 32px;
-  border: 2px dashed #CCCCCC;
+  border: 2px dashed var(--border-color);
   border-radius: 8px;
-  background-color: white;
+  background-color: var(--bg-secondary);
   transition: all 0.2s;
 }
 
@@ -321,23 +340,26 @@
   align-items: center;
   gap: 12px;
   padding: 12px 16px;
-  background-color: white;
-  border: 2px solid #DDDDDD;
+  background-color: var(--bg-secondary);
+  border: 2px solid var(--border-color);
   border-radius: 8px;
+  transition: all 0.3s ease;
 }
 
 .file-name {
   flex: 1;
   font-size: 14px;
   font-weight: 500;
-  color: #1D1616;
+  color: var(--text-primary);
   font-family: 'Poppins', sans-serif;
+  transition: color 0.3s ease;
 }
 
 .file-size {
   font-size: 12px;
-  color: #666666;
+  color: var(--text-secondary);
   font-family: 'Poppins', sans-serif;
+  transition: color 0.3s ease;
 }
 
 .btn-remove-file {
@@ -384,9 +406,9 @@
 
 .btn-cancel {
   padding: 12px 24px;
-  background-color: white;
-  color: #666666;
-  border: 2px solid #DDDDDD;
+  background-color: var(--bg-secondary);
+  color: var(--text-secondary);
+  border: 2px solid var(--border-color);
   border-radius: 8px;
   font-size: 14px;
   font-weight: 600;
@@ -417,14 +439,16 @@
 .submission-status h3 {
   font-size: 24px;
   font-weight: 700;
-  color: #1D1616;
+  color: var(--text-primary);
   font-family: 'Poppins', sans-serif;
+  transition: color 0.3s ease;
 }
 
 .submission-status p {
   font-size: 14px;
-  color: #666666;
+  color: var(--text-secondary);
   font-family: 'Poppins', sans-serif;
+  transition: color 0.3s ease;
 }
 
 .submitted-files,
@@ -432,17 +456,19 @@
   text-align: left;
   margin-bottom: 24px;
   padding: 16px;
-  background-color: white;
+  background-color: var(--bg-secondary);
   border-radius: 8px;
+  transition: background-color 0.3s ease;
 }
 
 .submitted-files h4,
 .submitted-text h4 {
   font-size: 14px;
   font-weight: 600;
-  color: #1D1616;
+  color: var(--text-primary);
   margin-bottom: 12px;
   font-family: 'Poppins', sans-serif;
+  transition: color 0.3s ease;
 }
 
 .submitted-file-item {
@@ -451,20 +477,22 @@
   gap: 8px;
   padding: 8px;
   font-size: 14px;
-  color: #666666;
+  color: var(--text-secondary);
   font-family: 'Poppins', sans-serif;
+  transition: color 0.3s ease;
 }
 
 .submitted-text p {
   font-size: 14px;
-  color: #666666;
+  color: var(--text-secondary);
   line-height: 1.6;
   font-family: 'Poppins', sans-serif;
+  transition: color 0.3s ease;
 }
 
 .btn-secondary {
   padding: 10px 20px;
-  background-color: white;
+  background-color: var(--bg-secondary);
   color: #8E1616;
   border: 2px solid #8E1616;
   border-radius: 8px;
@@ -487,18 +515,20 @@
 }
 
 .info-card {
-  background: white;
-  border: 2px solid #DDDDDD;
+  background: var(--bg-secondary);
+  border: 2px solid var(--border-color);
   border-radius: 8px;
   padding: 24px;
+  transition: all 0.3s ease;
 }
 
 .info-card h3 {
   font-size: 18px;
   font-weight: 600;
-  color: #1D1616;
+  color: var(--text-primary);
   margin-bottom: 20px;
   font-family: 'Poppins', sans-serif;
+  transition: color 0.3s ease;
 }
 
 .info-item {
@@ -507,7 +537,8 @@
   align-items: flex-start;
   gap: 16px;
   padding: 12px 0;
-  border-bottom: 1px solid #EEEEEE;
+  border-bottom: 1px solid var(--border-color);
+  transition: border-color 0.3s ease;
 }
 
 .info-item:last-child {
@@ -516,17 +547,19 @@
 
 .info-label {
   font-size: 13px;
-  color: #666666;
+  color: var(--text-secondary);
   font-weight: 500;
   font-family: 'Poppins', sans-serif;
+  transition: color 0.3s ease;
 }
 
 .info-value {
   font-size: 13px;
-  color: #1D1616;
+  color: var(--text-primary);
   font-weight: 600;
   text-align: right;
   font-family: 'Poppins', sans-serif;
+  transition: color 0.3s ease;
 }
 
 .info-value.status {
@@ -554,8 +587,9 @@
   text-align: center;
   padding: 60px 20px;
   font-size: 18px;
-  color: #666666;
+  color: var(--text-secondary);
   font-family: 'Poppins', sans-serif;
+  transition: color 0.3s ease;
 }
 
 @media (max-width: 1024px) {
