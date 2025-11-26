@@ -34,7 +34,7 @@ public class SubjectDTO {
         this.teacherUsername = teacherUsername;
     }
     
-    // Getters and Setters
+    
     public Long getSubjectId() {
         return subjectId;
     }

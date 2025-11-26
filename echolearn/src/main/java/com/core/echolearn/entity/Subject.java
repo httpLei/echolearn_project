@@ -44,7 +44,7 @@ public class Subject {
         }
     }
     
-    // Constructors
+    
     public Subject() {
     }
     
@@ -59,7 +59,7 @@ public class Subject {
         this.enrolledStudents = 0;
     }
     
-    // Getters and Setters
+    
     public Long getSubjectId() {
         return subjectId;
     }

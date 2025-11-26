@@ -23,7 +23,7 @@ public class EnrollmentDTO {
         this.enrolledAt = enrolledAt;
     }
     
-    // Getters and Setters
+    
     public Long getEnrollmentId() {
         return enrollmentId;
     }

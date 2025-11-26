@@ -24,7 +24,7 @@ public class SubjectController {
     public ResponseEntity<?> createSubject(@RequestBody CreateSubjectRequest request,
                                            @RequestParam Long teacherId) {
         try {
-            // Validate request
+            
             if (request.getSubjectName() == null || request.getSubjectName().isEmpty()) {
                 return ResponseEntity.badRequest()
                     .body(createErrorResponse("Subject name is required"));
@@ -63,10 +63,10 @@ public class SubjectController {
             List<SubjectDTO> subjects;
             
             if ("TEACHER".equalsIgnoreCase(role)) {
-                // Teachers only see their own subjects
+              
                 subjects = subjectService.getSubjectsByTeacher(userId);
             } else if ("STUDENT".equalsIgnoreCase(role)) {
-                // Students don't see any subjects until they enroll (enrollment feature not implemented yet)
+              
                 subjects = java.util.Collections.emptyList();
             } else {
                 return ResponseEntity.badRequest()
@@ -98,14 +98,14 @@ public class SubjectController {
         try {
             return subjectService.getSubjectById(subjectId)
                 .map(subject -> {
-                    // Teachers can only view their own subjects
+                   
                     if (userId != null && role != null && "TEACHER".equalsIgnoreCase(role)) {
                         if (!subject.getTeacherId().equals(userId)) {
                             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                                 .body(createErrorResponse("You don't have permission to view this subject"));
                         }
                     }
-                    // Students can view subjects (for enrollment browsing and enrolled subjects)
+                  
                     return ResponseEntity.ok(createSuccessResponse(subject));
                 })
                 .orElse(ResponseEntity.notFound().build());
@@ -120,7 +120,7 @@ public class SubjectController {
                                           @RequestBody CreateSubjectRequest request,
                                           @RequestParam Long teacherId) {
         try {
-            // Validate request
+            
             if (request.getSubjectName() == null || request.getSubjectName().isEmpty()) {
                 return ResponseEntity.badRequest()
                     .body(createErrorResponse("Subject name is required"));

@@ -21,7 +21,7 @@ public class CreateSubjectRequest {
         this.subjectCapacity = subjectCapacity;
     }
     
-    // Getters and Setters
+    
     public String getSubjectName() {
         return subjectName;
     }

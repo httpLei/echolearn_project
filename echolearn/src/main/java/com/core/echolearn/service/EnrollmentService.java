@@ -33,13 +33,13 @@ public class EnrollmentService {
     
     @Transactional
     public EnrollmentDTO enrollStudent(Long studentId, Long subjectId) {
-        // Verify student exists and is a student
+        
         Optional<User> studentOpt = userRepository.findById(studentId);
         if (studentOpt.isEmpty() || !studentOpt.get().getRole().equals("STUDENT")) {
             throw new IllegalArgumentException("Invalid student ID or user is not a student");
         }
         
-        // Verify subject exists
+    
         Optional<Subject> subjectOpt = subjectRepository.findById(subjectId);
         if (subjectOpt.isEmpty()) {
             throw new IllegalArgumentException("Subject not found");
@@ -48,21 +48,21 @@ public class EnrollmentService {
         User student = studentOpt.get();
         Subject subject = subjectOpt.get();
         
-        // Check if already enrolled
+        
         if (enrollmentRepository.existsByStudentIdAndSubjectSubjectId(studentId, subjectId)) {
             throw new IllegalArgumentException("Student is already enrolled in this subject");
         }
         
-        // Check if subject has capacity
+        
         if (subject.getEnrolledStudents() >= subject.getSubjectCapacity()) {
             throw new IllegalArgumentException("Subject has reached maximum capacity");
         }
         
-        // Create enrollment
+      
         Enrollment enrollment = new Enrollment(student, subject);
         Enrollment savedEnrollment = enrollmentRepository.save(enrollment);
         
-        // Update enrolled students count
+        
         subject.setEnrolledStudents(subject.getEnrolledStudents() + 1);
         subjectRepository.save(subject);
         
@@ -78,19 +78,19 @@ public class EnrollmentService {
         
         Enrollment enrollment = enrollmentOpt.get();
         
-        // Verify the student owns this enrollment
+      
         if (!enrollment.getStudent().getId().equals(studentId)) {
             throw new IllegalArgumentException("You don't have permission to unenroll from this subject");
         }
         
-        // Update enrolled students count
+       
         Subject subject = enrollment.getSubject();
         if (subject.getEnrolledStudents() > 0) {
             subject.setEnrolledStudents(subject.getEnrolledStudents() - 1);
             subjectRepository.save(subject);
         }
         
-        // Delete enrollment
+       
         enrollmentRepository.delete(enrollment);
     }
     
@@ -101,15 +101,15 @@ public class EnrollmentService {
     }
     
     public List<SubjectDTO> getAvailableSubjectsForEnrollment(Long studentId) {
-        // Get all subjects
+        
         List<Subject> allSubjects = subjectRepository.findAllByOrderByCreatedAtDesc();
         
-        // Get enrolled subject IDs for this student
+        
         List<Long> enrolledSubjectIds = enrollmentRepository.findByStudentId(studentId).stream()
             .map(e -> e.getSubject().getSubjectId())
             .collect(Collectors.toList());
         
-        // Filter out already enrolled subjects and convert to DTO
+       
         return allSubjects.stream()
             .filter(subject -> !enrolledSubjectIds.contains(subject.getSubjectId()))
             .map(subject -> subjectService.convertToDTO(subject))

@@ -27,7 +27,7 @@ public class Enrollment {
         enrolledAt = LocalDateTime.now();
     }
     
-    // Constructors
+    
     public Enrollment() {
     }
     

@@ -70,12 +70,12 @@ public class SubjectService {
         
         Subject subject = subjectOpt.get();
         
-        // Verify the teacher owns this subject
+        
         if (!subject.getTeacher().getId().equals(teacherId)) {
             throw new IllegalArgumentException("You don't have permission to edit this subject");
         }
         
-        // Update subject fields
+     
         subject.setSubjectName(request.getSubjectName());
         subject.setSubjectCode(request.getSubjectCode());
         subject.setSubjectDesc(request.getSubjectDesc());
@@ -95,7 +95,7 @@ public class SubjectService {
         
         Subject subject = subjectOpt.get();
         
-        // Verify the teacher owns this subject
+        
         if (!subject.getTeacher().getId().equals(teacherId)) {
             throw new IllegalArgumentException("You don't have permission to delete this subject");
         }
