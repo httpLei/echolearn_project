@@ -44,4 +44,22 @@ export const chatAPI = {
   deleteMessage: (chatId) => api.delete(`/chats/${chatId}`),
 };
 
+// Subject API
+export const subjectAPI = {
+  getAll: (userId, role) => api.get(`/subjects?userId=${userId}&role=${role}`),
+  getByTeacher: (teacherId) => api.get(`/subjects/teacher/${teacherId}`),
+  getById: (subjectId, userId, role) => api.get(`/subjects/${subjectId}?userId=${userId}&role=${role}`),
+  create: (subjectData, teacherId) => api.post(`/subjects?teacherId=${teacherId}`, subjectData),
+  update: (subjectId, subjectData, teacherId) => api.put(`/subjects/${subjectId}?teacherId=${teacherId}`, subjectData),
+  delete: (subjectId, teacherId) => api.delete(`/subjects/${subjectId}?teacherId=${teacherId}`),
+};
+
+// Enrollment API
+export const enrollmentAPI = {
+  getAvailable: (studentId) => api.get(`/enrollments/available?studentId=${studentId}`),
+  getEnrollments: (studentId) => api.get(`/enrollments/student/${studentId}`),
+  enroll: (studentId, subjectId) => api.post(`/enrollments?studentId=${studentId}&subjectId=${subjectId}`),
+  unenroll: (studentId, subjectId) => api.delete(`/enrollments?studentId=${studentId}&subjectId=${subjectId}`),
+};
+
 export default api;
