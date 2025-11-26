@@ -222,11 +222,32 @@
 
 .nav-item.active {
   background-color: #8b2e2e;
-  color: white;
 }
 
 .nav-item.active .nav-icon {
   stroke: white;
+  color: white;
+}
+
+.nav-item.active .nav-text {
+  /* Ensure the text is white */
+  color: white;
+}
+
+/* ⭐️ Ensure consistent font size across all states (14px is standard) */
+.nav-item .nav-text {
+  font-size: 14px;
+}
+
+.nav-item .nav-icon {
+  width: 20px;
+  height: 20px;
+}
+.nav-item {
+  padding-top: 10px !important; 
+  padding-bottom: 10px !important;
+  padding-left: 16px;
+  padding-right: 16px;
 }
 
 .nav-icon {

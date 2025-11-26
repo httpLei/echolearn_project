@@ -77,4 +77,16 @@ export const enrollmentAPI = {
   unenroll: (studentId, subjectId) => api.delete(`/enrollments?studentId=${studentId}&subjectId=${subjectId}`),
 };
 
+// Class Post API
+export const classPostAPI = {
+    getFeed: (subjectId) => api.get(`/classes/${subjectId}/posts`),
+    createPost: (subjectId, content, authorId) => api.post(`/classes/${subjectId}/posts`, { content, authorId }),
+    getReplies: (subjectId, postId) => api.get(`/classes/${subjectId}/posts/${postId}/replies`),
+    createReply: (subjectId, postId, content, authorId) => api.post(`/classes/${subjectId}/posts/${postId}/replies`, { content, authorId }),
+    editPost: (subjectId, postId, content) => api.put(`/classes/${subjectId}/posts/${postId}`, { content }),
+    deletePost: (subjectId, postId) => api.delete(`/classes/${subjectId}/posts/${postId}`),
+    editReply: (subjectId, postId, replyId, content) => api.put(`/classes/${subjectId}/posts/${postId}/replies/${replyId}`, { content }),
+    deleteReply: (subjectId, postId, replyId) => api.delete(`/classes/${subjectId}/posts/${postId}/replies/${replyId}`),
+  };
+
 export default api;

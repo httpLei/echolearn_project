@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Layout from '../../components/Layout.jsx';
 import { subjectAPI, enrollmentAPI } from '../../services/api.js';
 import '../css/Dashboard.css';
 
-// Predefined color palette for class cards
 const CLASS_COLORS = [
   '#7a9b7e', '#e8a587', '#8b6bb7', '#5983a8', '#c04d4d',
   '#b98198', '#d4c859', '#4a7ba7', '#84b174', '#a67c52',
@@ -11,6 +11,7 @@ const CLASS_COLORS = [
 ];
 
 function Dashboard({ user, onLogout }) {
+  const navigate = useNavigate();
   const [classes, setClasses] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEnrollmentModalOpen, setIsEnrollmentModalOpen] = useState(false);
@@ -41,7 +42,6 @@ function Dashboard({ user, onLogout }) {
     try {
       setLoading(true);
       if (user.role === 'STUDENT') {
-        // Fetch enrolled subjects for students
         const response = await enrollmentAPI.getEnrollments(user.id);
         if (response.data.success) {
           const subjects = response.data.data.map((enrollment, index) => ({
@@ -55,7 +55,6 @@ function Dashboard({ user, onLogout }) {
           setClasses(subjects);
         }
       } else {
-        // Fetch created subjects for teachers
         const response = await subjectAPI.getAll(user.id, user.role);
         if (response.data.success) {
           const subjects = response.data.data.map((subject, index) => ({
@@ -180,35 +179,8 @@ function Dashboard({ user, onLogout }) {
   };
 
   const handleClassClick = async (classId) => {
-    if (!user) return;
-    
-    try {
-      setLoading(true);
-      const response = await subjectAPI.getById(classId, user.id, user.role);
-      if (response.data.success) {
-        setSelectedSubject(response.data.data);
-        setIsDetailsModalOpen(true);
-        setIsEditMode(false);
-        
-        // Check if student is enrolled in this subject
-        if (user.role === 'STUDENT') {
-          const enrollmentsResponse = await enrollmentAPI.getEnrollments(user.id);
-          if (enrollmentsResponse.data.success) {
-            const isEnrolled = enrollmentsResponse.data.data.some(
-              e => e.subject.subjectId === classId
-            );
-            setIsEnrolledSubject(isEnrolled);
-          }
-        }
-      } else {
-        setError(response.data.message || 'Failed to load subject details');
-      }
-    } catch (err) {
-      console.error('Error fetching subject details:', err);
-      setError(err.response?.data?.message || 'Failed to load subject details');
-    } finally {
-      setLoading(false);
-    }
+    // NEW: Immediately navigates to the dedicated class page URL.
+    navigate(`/class/${classId}`); 
   };
 
   const handleEnrollClick = async (subjectId) => {
