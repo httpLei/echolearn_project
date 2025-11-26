@@ -44,6 +44,21 @@ export const chatAPI = {
   deleteMessage: (chatId) => api.delete(`/chats/${chatId}`),
 };
 
+// Conversation API
+export const conversationAPI = {
+  getUserConversations: (userId) => api.get(`/conversations/user/${userId}`),
+  startConversation: (user1Id, user2Id) => api.post('/conversations/start', { user1Id, user2Id }),
+  getMessages: (conversationId) => api.get(`/conversations/${conversationId}/messages`),
+  sendMessage: (conversationId, senderId, content) => api.post(`/conversations/${conversationId}/messages`, { senderId, content }),
+  editMessage: (messageId, content) => api.put(`/conversations/messages/${messageId}`, { content }),
+  deleteMessage: (messageId) => api.delete(`/conversations/messages/${messageId}`),
+  getSideChats: (conversationId) => api.get(`/conversations/${conversationId}/sidechats`),
+  createSideChat: (conversationId, title, createdBy) => api.post(`/conversations/${conversationId}/sidechats`, { title, createdBy }),
+  deleteSideChat: (sideChatId) => api.delete(`/conversations/sidechats/${sideChatId}`),
+  getSideChatMessages: (sideChatId) => api.get(`/conversations/sidechats/${sideChatId}/messages`),
+  sendSideChatMessage: (sideChatId, senderId, content) => api.post(`/conversations/sidechats/${sideChatId}/messages`, { senderId, content }),
+};
+
 // Subject API
 export const subjectAPI = {
   getAll: (userId, role) => api.get(`/subjects?userId=${userId}&role=${role}`),

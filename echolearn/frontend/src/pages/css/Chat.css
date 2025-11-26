@@ -465,12 +465,35 @@
   border-radius: 10px;
   cursor: pointer;
   transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .side-chat-item:hover {
   border-color: #8b2e2e;
   background: rgba(139, 46, 46, 0.05);
   transform: translateX(4px);
+}
+
+.btn-delete-side-chat {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.btn-delete-side-chat:hover {
+  background: #dc3545;
+  color: white;
 }
 
 .side-chat-title {

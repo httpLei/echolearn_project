@@ -1,59 +1,70 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Layout from '../../components/Layout.jsx';
+import { conversationAPI } from '../../services/api';
 import '../css/Chat.css';
 
 function Chat({ user, onLogout }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedChat, setSelectedChat] = useState(null);
   const [messageText, setMessageText] = useState('');
-  const [messages, setMessages] = useState({});
+  const [messages, setMessages] = useState([]);
   const [sideChats, setSideChats] = useState([]);
   const [selectedSideChat, setSelectedSideChat] = useState(null);
+  const [sideChatMessages, setSideChatMessages] = useState([]);
   const [sideChatTitle, setSideChatTitle] = useState('');
   const [showSideChatModal, setShowSideChatModal] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
+  const [chatUsers, setChatUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
   const fileInputRef = useRef(null);
   const messagesEndRef = useRef(null);
 
-  // Sample chat users data
-  const chatUsers = [
-    { id: 1, name: 'Pranz Rabe', lastMessage: 'On the way, ma late lang ko', avatar: 'P', time: '10:30' },
-    { id: 2, name: 'Richemmae Bigno', lastMessage: 'Guys unsa inyo gicostume sa rizal', avatar: 'R', time: '10:35' },
-    { id: 3, name: 'Maxine Ocampo', lastMessage: 'Wait, mag meeting ta later?', avatar: 'M', time: '09:15' },
-    { id: 4, name: 'Lerah Caones', lastMessage: 'Sige, noted! Thanks!', avatar: 'L', time: '08:45' },
-    { id: 5, name: 'Erica Dabalos', lastMessage: 'Ilaag nalang nato na', avatar: 'E', time: 'Yesterday' },
-    { id: 6, name: 'Clyde Benolirao', lastMessage: 'Na human mo sa activity ni sir?', avatar: 'C', time: 'Yesterday' },
-    { id: 7, name: 'Maxine Ocampo', lastMessage: 'Wait, mag meeting ta later?', avatar: 'M', time: '09:15' },
-    { id: 8, name: 'Lerah Caones', lastMessage: 'Sige, noted! Thanks!', avatar: 'L', time: '08:45' },
-    { id: 9, name: 'Pranz Rabe', lastMessage: 'On the way, ma late lang ko', avatar: 'P', time: '10:30' },
-  ];
-
-  // Sample messages for demonstration
-  const sampleMessages = {
-    1: [
-      { id: 1, sender: 'Pranz Rabe', text: 'On the way, ma late lang ko', time: '10:30', isOwn: false, avatar: 'P' },
-      { id: 2, sender: 'You', text: 'Sige, no problem!', time: '10:32', isOwn: true, avatar: user.username.charAt(0).toUpperCase() },
-    ],
-    2: [
-      { id: 1, sender: 'Richemmae Bigno', text: 'Guys unsa inyo gicostume sa rizal', time: '10:35', isOwn: false, avatar: 'R' },
-      { id: 2, sender: 'You', text: 'Wala pa ko naka decide haha', time: '10:36', isOwn: true, avatar: user.username.charAt(0).toUpperCase() },
-    ],
-  };
-
   useEffect(() => {
-    // Initialize sample messages
-    setMessages(sampleMessages);
-    
-    // Initialize sample side chats
-    setSideChats([
-      { id: 1, title: 'Question: Assignment 5', messageCount: 8, chatId: 1 },
-      { id: 2, title: 'Meeting Time Discussion', messageCount: 12, chatId: 1 },
-    ]);
+    fetchConversations();
   }, []);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, selectedChat]);
+  }, [messages, selectedChat, sideChatMessages, selectedSideChat]);
+
+  const fetchConversations = async () => {
+    try {
+      setLoading(true);
+      const response = await conversationAPI.getUserConversations(user.id);
+      setChatUsers(response.data);
+    } catch (error) {
+      console.error('Error fetching conversations:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchMessages = async (conversationId) => {
+    try {
+      const response = await conversationAPI.getMessages(conversationId);
+      setMessages(response.data);
+    } catch (error) {
+      console.error('Error fetching messages:', error);
+    }
+  };
+
+  const fetchSideChats = async (conversationId) => {
+    try {
+      const response = await conversationAPI.getSideChats(conversationId);
+      setSideChats(response.data);
+    } catch (error) {
+      console.error('Error fetching side chats:', error);
+    }
+  };
+
+  const fetchSideChatMessages = async (sideChatId) => {
+    try {
+      const response = await conversationAPI.getSideChatMessages(sideChatId);
+      setSideChatMessages(response.data);
+    } catch (error) {
+      console.error('Error fetching side chat messages:', error);
+    }
+  };
 
   const filteredUsers = chatUsers.filter(chatUser =>
     chatUser.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -61,29 +72,34 @@ function Chat({ user, onLogout }) {
 
   const handleUserClick = (chatUser) => {
     setSelectedChat(chatUser);
-    if (!messages[chatUser.id]) {
-      setMessages({ ...messages, [chatUser.id]: [] });
-    }
+    setSelectedSideChat(null);
+    fetchMessages(chatUser.id);
+    fetchSideChats(chatUser.id);
   };
 
-  const handleSendMessage = (e) => {
+  const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!messageText.trim() || !selectedChat) return;
 
-    const newMessage = {
-      id: Date.now(),
-      sender: 'You',
-      text: messageText,
-      time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-      isOwn: true,
-      avatar: user.username.charAt(0).toUpperCase()
-    };
-
-    setMessages({
-      ...messages,
-      [selectedChat.id]: [...(messages[selectedChat.id] || []), newMessage]
-    });
-    setMessageText('');
+    try {
+      const response = await conversationAPI.sendMessage(
+        selectedChat.id,
+        user.id,
+        messageText
+      );
+      
+      setMessages([...messages, {
+        ...response.data,
+        isOwn: true
+      }]);
+      setMessageText('');
+      
+      // Refresh conversations to update last message
+      fetchConversations();
+    } catch (error) {
+      console.error('Error sending message:', error);
+      alert('Failed to send message');
+    }
   };
 
   const handleFileUpload = (e) => {
@@ -108,27 +124,83 @@ function Chat({ user, onLogout }) {
     });
   };
 
-  const handleCreateSideChat = () => {
-    if (!sideChatTitle.trim()) return;
+  const handleCreateSideChat = async () => {
+    if (!sideChatTitle.trim() || !selectedChat) return;
 
-    const newSideChat = {
-      id: Date.now(),
-      title: sideChatTitle,
-      messageCount: 0,
-      chatId: selectedChat.id
-    };
-
-    setSideChats([...sideChats, newSideChat]);
-    setSideChatTitle('');
-    setShowSideChatModal(false);
+    try {
+      const response = await conversationAPI.createSideChat(
+        selectedChat.id,
+        sideChatTitle,
+        user.id
+      );
+      
+      setSideChats([...sideChats, response.data]);
+      setSideChatTitle('');
+      setShowSideChatModal(false);
+    } catch (error) {
+      console.error('Error creating side chat:', error);
+      alert('Failed to create side chat');
+    }
   };
 
   const handleSideChatClick = (sideChat) => {
     setSelectedSideChat(sideChat);
+    fetchSideChatMessages(sideChat.id);
   };
 
   const handleCloseSideChat = () => {
     setSelectedSideChat(null);
+    setSideChatMessages([]);
+  };
+
+  const handleDeleteSideChat = async (sideChatId, e) => {
+    e.stopPropagation();
+    
+    if (!window.confirm('Are you sure you want to delete this side chat?')) {
+      return;
+    }
+
+    try {
+      await conversationAPI.deleteSideChat(sideChatId);
+      setSideChats(sideChats.filter(sc => sc.id !== sideChatId));
+      
+      if (selectedSideChat?.id === sideChatId) {
+        handleCloseSideChat();
+      }
+    } catch (error) {
+      console.error('Error deleting side chat:', error);
+      alert('Failed to delete side chat');
+    }
+  };
+
+  const handleSendSideChatMessage = async (e) => {
+    e.preventDefault();
+    if (!messageText.trim() || !selectedSideChat) return;
+
+    try {
+      const response = await conversationAPI.sendSideChatMessage(
+        selectedSideChat.id,
+        user.id,
+        messageText
+      );
+      
+      setSideChatMessages([...sideChatMessages, {
+        ...response.data,
+        isOwn: true
+      }]);
+      setMessageText('');
+      
+      // Update message count
+      const updatedSideChats = sideChats.map(sc => 
+        sc.id === selectedSideChat.id 
+          ? { ...sc, messageCount: sc.messageCount + 1 }
+          : sc
+      );
+      setSideChats(updatedSideChats);
+    } catch (error) {
+      console.error('Error sending side chat message:', error);
+      alert('Failed to send message');
+    }
   };
 
   return (
@@ -155,22 +227,34 @@ function Chat({ user, onLogout }) {
           </div>
 
           <div className="chat-user-list">
-            {filteredUsers.map((chatUser) => (
-              <div 
-                key={chatUser.id} 
-                className={`chat-user-item ${selectedChat?.id === chatUser.id ? 'active' : ''}`}
-                onClick={() => handleUserClick(chatUser)}
-              >
-                <div className="chat-user-avatar">{chatUser.avatar}</div>
-                <div className="chat-user-info">
-                  <div className="chat-user-header">
-                    <h3 className="chat-user-name">{chatUser.name}</h3>
-                    <span className="chat-user-time">{chatUser.time}</span>
-                  </div>
-                  <p className="chat-user-last-message">{chatUser.lastMessage}</p>
-                </div>
+            {loading ? (
+              <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                Loading conversations...
               </div>
-            ))}
+            ) : filteredUsers.length === 0 ? (
+              <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                No conversations found
+              </div>
+            ) : (
+              filteredUsers.map((chatUser) => (
+                <div 
+                  key={chatUser.id} 
+                  className={`chat-user-item ${selectedChat?.id === chatUser.id ? 'active' : ''}`}
+                  onClick={() => handleUserClick(chatUser)}
+                >
+                  <div className="chat-user-avatar">{chatUser.avatar}</div>
+                  <div className="chat-user-info">
+                    <div className="chat-user-header">
+                      <h3 className="chat-user-name">{chatUser.name}</h3>
+                      <span className="chat-user-time">
+                        {chatUser.time ? new Date(chatUser.time).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : ''}
+                      </span>
+                    </div>
+                    <p className="chat-user-last-message">{chatUser.lastMessage}</p>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
 
@@ -198,23 +282,28 @@ function Chat({ user, onLogout }) {
               </div>
 
               <div className="chat-messages-area">
-                {(messages[selectedChat.id] || []).map((message) => (
-                  <div key={message.id} className={`message-wrapper ${message.isOwn ? 'own' : 'other'}`}>
-                    {!message.isOwn && <div className="message-avatar">{message.avatar}</div>}
-                    <div className="message-content">
-                      {!message.isOwn && <div className="message-sender">{message.sender}</div>}
-                      <div className={`message-bubble ${message.isOwn ? 'own' : 'other'} ${message.isFile ? 'file' : ''}`}>
-                        {message.text}
+                {(selectedSideChat ? sideChatMessages : messages).map((message) => {
+                  const isOwn = message.senderId === user.id;
+                  return (
+                    <div key={message.id} className={`message-wrapper ${isOwn ? 'own' : 'other'}`}>
+                      {!isOwn && <div className="message-avatar">{message.avatar}</div>}
+                      <div className="message-content">
+                        {!isOwn && <div className="message-sender">{message.sender}</div>}
+                        <div className={`message-bubble ${isOwn ? 'own' : 'other'}`}>
+                          {message.content}
+                        </div>
+                        <div className="message-time">
+                          {isOwn ? 'You' : message.sender} • {new Date(message.timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                        </div>
                       </div>
-                      <div className="message-time">{message.isOwn ? 'You' : message.sender} • {message.time}</div>
+                      {isOwn && <div className="message-avatar own">{message.avatar}</div>}
                     </div>
-                    {message.isOwn && <div className="message-avatar own">{message.avatar}</div>}
-                  </div>
-                ))}
+                  );
+                })}
                 <div ref={messagesEndRef} />
               </div>
 
-              <form className="chat-input-area" onSubmit={handleSendMessage}>
+              <form className="chat-input-area" onSubmit={selectedSideChat ? handleSendSideChatMessage : handleSendMessage}>
                 <input
                   type="file"
                   ref={fileInputRef}
@@ -279,14 +368,26 @@ function Chat({ user, onLogout }) {
 
             {!selectedSideChat ? (
               <div className="side-chats-list">
-                {sideChats.filter(sc => sc.chatId === selectedChat.id).map((sideChat) => (
+                {sideChats.map((sideChat) => (
                   <div 
                     key={sideChat.id} 
                     className="side-chat-item"
                     onClick={() => handleSideChatClick(sideChat)}
                   >
-                    <h4 className="side-chat-title">{sideChat.title}</h4>
-                    <p className="side-chat-count">{sideChat.messageCount} messages</p>
+                    <div style={{ flex: 1 }}>
+                      <h4 className="side-chat-title">{sideChat.title}</h4>
+                      <p className="side-chat-count">{sideChat.messageCount} messages</p>
+                    </div>
+                    <button
+                      className="btn-delete-side-chat"
+                      onClick={(e) => handleDeleteSideChat(sideChat.id, e)}
+                      title="Delete side chat"
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                      </svg>
+                    </button>
                   </div>
                 ))}
                 
@@ -304,7 +405,9 @@ function Chat({ user, onLogout }) {
               <div className="side-chat-view">
                 <h3 className="side-chat-view-title">{selectedSideChat.title}</h3>
                 <div className="side-chat-messages">
-                  <p className="side-chat-empty">No messages yet. Start the conversation!</p>
+                  {sideChatMessages.length === 0 ? (
+                    <p className="side-chat-empty">No messages yet. Start the conversation!</p>
+                  ) : null}
                 </div>
               </div>
             )}
