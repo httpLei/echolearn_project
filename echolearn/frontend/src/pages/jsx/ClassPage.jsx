@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Layout from '../../components/Layout.jsx';
+import ClassAssignments from '../../components/ClassAssignments.jsx';
 import { classPostAPI, subjectAPI } from '../../services/api.js';
 import '../css/ClassPage.css';
 
@@ -14,6 +15,7 @@ function ClassPage({ user, onLogout }) {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const postEndRef = useRef(null);
+    const [activeTab, setActiveTab] = useState('posts');
 
     const [replyTextMap, setReplyTextMap] = useState({});
     const [openReplies, setOpenReplies] = useState({});
@@ -263,16 +265,27 @@ function ClassPage({ user, onLogout }) {
                     <h1 className="class-title">{subject.subjectCode}: {subject.subjectName}</h1>
                     <p className="class-subtitle">Teacher: {subject.teacherUsername}</p>
                     <div className="class-nav">
-                        <span className="nav-item active">Posts</span>
-                        <span className="nav-item">Assignments</span>
+                        <span 
+                            className={`nav-item ${activeTab === 'posts' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('posts')}
+                        >
+                            Posts
+                        </span>
+                        <span 
+                            className={`nav-item ${activeTab === 'assignments' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('assignments')}
+                        >
+                            Assignments
+                        </span>
                         <span className="nav-item">Grades</span>
                         <span className="nav-item">Files</span>
                     </div>
                 </div>
 
-                <div className="class-feed-content">
-                    <div className="feed-posts-area">
-                        {posts.map((post) => (
+                {activeTab === 'posts' && (
+                    <div className="class-feed-content">
+                        <div className="feed-posts-area">
+                            {posts.map((post) => (
                             <div key={post.postId} className="post-and-reply-wrapper"> 
                                 <div className="post-card">
                                     <div className="post-header">
@@ -419,6 +432,11 @@ function ClassPage({ user, onLogout }) {
                         </form>
                     </div>
                 </div>
+                )}
+
+                {activeTab === 'assignments' && (
+                    <ClassAssignments user={user} subjectId={subjectId} subjectCode={subject.subjectCode} />
+                )}
             </div>
         </Layout>
     );

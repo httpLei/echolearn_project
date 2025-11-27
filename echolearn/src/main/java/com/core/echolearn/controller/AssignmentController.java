@@ -2,8 +2,10 @@ package com.core.echolearn.controller;
 
 import com.core.echolearn.entity.Assignment;
 import com.core.echolearn.entity.User;
+import com.core.echolearn.entity.Subject;
 import com.core.echolearn.service.AssignmentService;
 import com.core.echolearn.service.UserService;
+import com.core.echolearn.service.SubjectService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +24,9 @@ public class AssignmentController {
     
     @Autowired
     private UserService userService;
+    
+    @Autowired
+    private SubjectService subjectService;
     
     @GetMapping("/user/{userId}")
     public ResponseEntity<?> getAssignmentsByUser(@PathVariable Long userId) { //get all the assignements of a user
@@ -98,6 +103,48 @@ public class AssignmentController {
         try {
             assignmentService.deleteAssignment(id);
             return ResponseEntity.ok("Assignment deleted successfully");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Error: " + e.getMessage());
+        }
+    }
+    
+    // Get assignments by subject
+    @GetMapping("/subject/{subjectId}")
+    public ResponseEntity<?> getAssignmentsBySubject(@PathVariable Long subjectId) {
+        try {
+            Optional<Subject> subjectOpt = subjectService.getSubjectEntityById(subjectId);
+            if (!subjectOpt.isPresent()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("Subject not found");
+            }
+            
+            List<Assignment> assignments = assignmentService.getAssignmentsBySubject(subjectOpt.get());
+            return ResponseEntity.ok(assignments);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Error: " + e.getMessage());
+        }
+    }
+    
+    // Get assignments by subject and user (for students to see their assignments in a class)
+    @GetMapping("/subject/{subjectId}/user/{userId}")
+    public ResponseEntity<?> getAssignmentsBySubjectAndUser(@PathVariable Long subjectId, @PathVariable Long userId) {
+        try {
+            Optional<Subject> subjectOpt = subjectService.getSubjectEntityById(subjectId);
+            Optional<User> userOpt = userService.findById(userId);
+            
+            if (!subjectOpt.isPresent()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("Subject not found");
+            }
+            if (!userOpt.isPresent()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("User not found");
+            }
+            
+            List<Assignment> assignments = assignmentService.getAssignmentsBySubjectAndUser(subjectOpt.get(), userOpt.get());
+            return ResponseEntity.ok(assignments);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body("Error: " + e.getMessage());

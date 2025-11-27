@@ -21,9 +21,6 @@ public class Assignment {
     @Column(name = "due_date")
     private LocalDate dueDate;
     
-    @Column(nullable = false)
-    private String subject;
-    
     @Column(name = "estimated_time")
     private Integer estimatedTime; // in minutes
     
@@ -37,8 +34,12 @@ public class Assignment {
     private LocalDateTime createdAt;
     
     @ManyToOne
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", nullable = true)
     private User user;
+    
+    @ManyToOne
+    @JoinColumn(name = "subject_id")
+    private Subject subject;
     
     @PrePersist
     protected void onCreate() {
@@ -53,7 +54,7 @@ public class Assignment {
     }
     
     public Assignment(String title, String description, LocalDate dueDate, 
-                     String subject, Integer estimatedTime, String difficulty) {
+                     Subject subject, Integer estimatedTime, String difficulty) {
         this.title = title;
         this.description = description;
         this.dueDate = dueDate;
@@ -96,11 +97,11 @@ public class Assignment {
         this.dueDate = dueDate;
     }
     
-    public String getSubject() {
+    public Subject getSubject() {
         return subject;
     }
     
-    public void setSubject(String subject) {
+    public void setSubject(Subject subject) {
         this.subject = subject;
     }
     

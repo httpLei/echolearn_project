@@ -30,6 +30,9 @@ public class DataInitializer implements CommandLineRunner {
     @Autowired
     private SideChatRepository sideChatRepository;
     
+    @Autowired
+    private SubjectRepository subjectRepository;
+    
     @Override
     public void run(String... args) throws Exception {
         // Check if sample users already exist, if not create them
@@ -90,6 +93,46 @@ public class DataInitializer implements CommandLineRunner {
                 return userRepository.save(newUser);
             });
         
+        // Create sample subjects if they don't exist
+        Subject subject1 = subjectRepository.findBySubjectCode("IT365")
+            .orElseGet(() -> {
+                Subject newSubject = new Subject(
+                    "Data Analytics",
+                    "IT365",
+                    "Introduction to data analytics and visualization",
+                    LocalDateTime.of(2025, 11, 28, 10, 0),
+                    40,
+                    teacher1
+                );
+                return subjectRepository.save(newSubject);
+            });
+        
+        Subject subject2 = subjectRepository.findBySubjectCode("CSIT327")
+            .orElseGet(() -> {
+                Subject newSubject = new Subject(
+                    "Information Management",
+                    "CSIT327",
+                    "Database design and management",
+                    LocalDateTime.of(2025, 11, 28, 13, 0),
+                    35,
+                    teacher1
+                );
+                return subjectRepository.save(newSubject);
+            });
+        
+        Subject subject3 = subjectRepository.findBySubjectCode("ES038")
+            .orElseGet(() -> {
+                Subject newSubject = new Subject(
+                    "Entrepreneurship",
+                    "ES038",
+                    "Fundamentals of business and entrepreneurship",
+                    LocalDateTime.of(2025, 11, 29, 15, 0),
+                    30,
+                    teacher1
+                );
+                return subjectRepository.save(newSubject);
+            });
+        
         // Only create sample assignments if they don't already exist
         long assignmentCount = assignmentRepository.count();
         if (assignmentCount == 0) {
@@ -98,7 +141,7 @@ public class DataInitializer implements CommandLineRunner {
                 "Data Visualization",
                 "Create the pivot tables (label your tables' headers accordingly) below and add/put their charts in a DASHBOARD (1st sheet)",
                 LocalDate.of(2025, 11, 5),
-                "IT365",
+                subject1,
                 120,
                 "EASY"
             );
@@ -109,7 +152,7 @@ public class DataInitializer implements CommandLineRunner {
                 "Database Design Project",
                 "Design and implement a normalized database schema for the given case study",
                 LocalDate.of(2025, 11, 8),
-                "CSIT327",
+                subject2,
                 180,
                 "MEDIUM"
             );
@@ -120,7 +163,7 @@ public class DataInitializer implements CommandLineRunner {
                 "Business Plan Presentation",
                 "Prepare a comprehensive business plan for your startup idea",
                 LocalDate.of(2025, 11, 12),
-                "ES038",
+                subject3,
                 240,
                 "HARD"
             );
@@ -131,7 +174,7 @@ public class DataInitializer implements CommandLineRunner {
                 "Linear Regression Activity",
                 "Apply linear regression techniques to analyze and predict data patterns using Python",
                 LocalDate.of(2025, 11, 15),
-                "IT365",
+                subject1,
                 150,
                 "MEDIUM"
             );

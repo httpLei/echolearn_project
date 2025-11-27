@@ -61,6 +61,10 @@ public class SubjectService {
             .map(this::convertToDTO);
     }
     
+    public Optional<Subject> getSubjectEntityById(Long subjectId) {
+        return subjectRepository.findById(subjectId);
+    }
+    
     @Transactional
     public SubjectDTO updateSubject(Long subjectId, CreateSubjectRequest request, Long teacherId) {
         Optional<Subject> subjectOpt = subjectRepository.findById(subjectId);

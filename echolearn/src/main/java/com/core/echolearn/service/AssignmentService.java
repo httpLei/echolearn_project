@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import com.core.echolearn.dto.CalendarEventDTO;
 import com.core.echolearn.entity.Assignment;
 import com.core.echolearn.entity.User;
+import com.core.echolearn.entity.Subject;
 import com.core.echolearn.repository.AssignmentRepository;
 
 @Service
@@ -35,11 +36,20 @@ public class AssignmentService {
         return assignmentRepository.findByUserOrderByDueDateAsc(user);
     }
     
+    public List<Assignment> getAssignmentsBySubject(Subject subject) {
+        return assignmentRepository.findBySubjectOrderByDueDateAsc(subject);
+    }
+    
+    public List<Assignment> getAssignmentsBySubjectAndUser(Subject subject, User user) {
+        // For students: get assignments where user is null (teacher-created) OR user is the student
+        return assignmentRepository.findBySubjectForStudent(subject, user);
+    }
+    
     public List<Assignment> getCompletedAssignments(User user, Boolean completed) {
         return assignmentRepository.findByUserAndCompleted(user, completed);
     }
     
-    public List<Assignment> getAssignmentsBySubject(User user, String subject) {
+    public List<Assignment> getAssignmentsByUserAndSubject(User user, Subject subject) {
         return assignmentRepository.findByUserAndSubject(user, subject);
     }
     
