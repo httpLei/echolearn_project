@@ -15,228 +15,40 @@ function AssignmentDetail({ user, onLogout }) {
   const [submission, setSubmission] = useState(null);
 
   useEffect(() => {
-    // Mock assignment data - matches the assignments from Assignments.js
-    const allAssignments = [
-      {
-        activityId: 1,
-        title: 'Familiarizing GIT and Python Django',
-        description: 'To familiarize yourself with Git version control processes and Python Django framework through the creation of two distinct projects, each in its own public repository.',
-        instructions: `Complete the following tasks:
+    if (id && user) {
+      fetchAssignment();
+    }
+  }, [id, user]);
 
-1. Create a new Git repository for your Django project
-2. Initialize a Django project with proper structure
-3. Create at least 3 models with relationships
-4. Implement CRUD operations for all models
-5. Add proper documentation in your README.md
-6. Push all changes to your public repository
-
-Submission Requirements:
-- Submit the GitHub repository URL
-- Include screenshots of your working application
-- Write a brief summary of what you learned (minimum 200 words)`,
-        dueDate: '2025-10-06',
-        estimatedTime: 180,
-        subject: 'CSIT327',
-        difficulty: 'Hard',
-        points: 100,
-        professor: 'Joemarie C. Amparo',
-        completed: false,
-        allowLateSubmission: true,
-        attachments: [
-          { name: 'Django_Tutorial.pdf', size: '2.4 MB', url: '#' },
-          { name: 'Git_Commands.pdf', size: '1.1 MB', url: '#' }
-        ]
-      },
-      {
-        activityId: 2,
-        title: 'Data Visualization',
-        description: 'Create the pivot tables (label your tables\' headers accordingly) below and add/put their charts in a DASHBOARD (1st sheet)',
-        instructions: `Assignment Requirements:
-
-1. Create pivot tables with properly labeled headers
-2. Generate charts for each pivot table
-3. Organize all charts in a single DASHBOARD sheet
-4. Use appropriate chart types for the data
-5. Ensure all labels are clear and readable
-
-Submission Requirements:
-- Submit your Excel file (.xlsx format)
-- Include at least 3 different pivot tables
-- Each pivot table must have a corresponding chart
-- Dashboard must be well-organized and professional`,
-        dueDate: '2025-11-30',
-        estimatedTime: 120,
-        subject: 'IT365',
-        difficulty: 'Medium',
-        points: 75,
-        professor: 'Joemarie C. Amparo',
-        completed: false,
-        allowLateSubmission: true,
-        attachments: [
-          { name: 'Sample_Data.xlsx', size: '856 KB', url: '#' }
-        ]
-      },
-      {
-        activityId: 3,
-        title: 'Project ERD Design',
-        description: 'Design a comprehensive Entity-Relationship Diagram (ERD) for your capstone project database schema.',
-        instructions: `ERD Requirements:
-
-1. Identify all entities (minimum 8 entities required)
-2. Define attributes for each entity with appropriate data types
-3. Establish relationships between entities (one-to-one, one-to-many, many-to-many)
-4. Specify primary keys and foreign keys
-5. Include cardinality and participation constraints
-6. Apply normalization rules (at least 3NF)
-7. Document business rules and assumptions
-
-Deliverables:
-- ERD diagram using proper notation (Crow's Foot or Chen notation)
-- Data dictionary with all entities, attributes, and data types
-- Written explanation of relationships and constraints (300-500 words)
-- Normalization justification document
-
-Tools:
-- Use any ERD tool (Draw.io, Lucidchart, MySQL Workbench, etc.)
-- Submit as PDF with clear, readable diagrams
-- Include entity names in UPPERCASE and attributes in lowercase`,
-        dueDate: '2025-11-23',
-        estimatedTime: 90,
-        subject: 'CSIT340',
-        difficulty: 'Medium',
-        points: 80,
-        professor: 'Eugene C. Busico',
-        completed: false,
-        allowLateSubmission: true,
-        attachments: [
-          { name: 'ERD_Guidelines.pdf', size: '1.8 MB', url: '#' },
-          { name: 'Sample_ERD.pdf', size: '945 KB', url: '#' }
-        ]
-      },
-      {
-        activityId: 4,
-        title: 'Sprint 2 Progress Report',
-        description: 'Prepare a short report summarizing your team\'s accomplishments, blockers, and next sprint goals.',
-        instructions: `Report Structure:
-
-1. Executive Summary (1 paragraph)
-2. Accomplishments (bullet points with details)
-3. Current Blockers (describe issues and impact)
-4. Solutions Implemented or Proposed
-5. Next Sprint Goals (specific and measurable)
-6. Team Member Contributions
-
-Format Requirements:
-- Maximum 2 pages
-- Use professional formatting
-- Include relevant screenshots or diagrams
-- Submit as PDF`,
-        dueDate: '2025-10-04',
-        estimatedTime: 30,
-        subject: 'IT317',
-        difficulty: 'Easy',
-        points: 50,
-        professor: 'Joemarie C. Amparo',
-        completed: false,
-        allowLateSubmission: false,
-        attachments: [
-          { name: 'Report_Template.docx', size: '324 KB', url: '#' }
-        ]
-      },
-      {
-        activityId: 5,
-        title: 'Noli Me Tangere Reflection Essay',
-        description: 'Write a reflection paper discussing the relevance of Noli Me Tangere in today\'s society.',
-        instructions: `Essay Requirements:
-
-1. Introduction: Brief overview of Noli Me Tangere
-2. Historical Context: Describe the time period and significance
-3. Main Themes: Analyze key themes in the novel
-4. Modern Relevance: Connect themes to contemporary issues
-5. Personal Reflection: Your insights and takeaways
-6. Conclusion: Summarize your main points
-
-Format:
-- Minimum 500 words, maximum 800 words
-- Use MLA or APA format
-- Include at least 3 citations
-- Submit as PDF or DOCX`,
-        dueDate: '2025-11-15',
-        estimatedTime: 60,
-        subject: 'RIZAL031',
-        difficulty: 'Easy',
-        points: 60,
-        professor: 'Joemarie C. Amparo',
-        completed: false,
-        allowLateSubmission: true,
-        attachments: [
-          { name: 'Noli_Me_Tangere_Summary.pdf', size: '2.1 MB', url: '#' },
-          { name: 'Essay_Rubric.pdf', size: '445 KB', url: '#' }
-        ]
-      },
-      {
-        activityId: 6,
-        title: 'Linear Regression Activity',
-        description: 'Apply linear regression techniques to analyze and predict data patterns using Python',
-        instructions: `Activity Requirements:
-
-1. Load and explore the provided dataset
-2. Perform data preprocessing and cleaning
-3. Implement linear regression using scikit-learn
-4. Calculate R-squared score and other metrics
-5. Create visualizations showing:
-   - Scatter plot of actual vs predicted values
-   - Residual plot
-   - Regression line
-6. Interpret your results and findings
-
-Submission Requirements:
-- Jupyter Notebook (.ipynb) with code and markdown explanations
-- Include all visualizations
-- Write a summary of your findings (minimum 300 words)
-- Submit the dataset used (if not the provided one)
-
-Grading Criteria:
-- Code correctness and efficiency (40%)
-- Visualizations quality (30%)
-- Analysis and interpretation (20%)
-- Documentation and clarity (10%)`,
-        dueDate: '2025-11-15',
-        estimatedTime: 150,
-        subject: 'IT365',
-        difficulty: 'Medium',
-        points: 85,
-        professor: 'Joemarie C. Amparo',
-        completed: false,
-        allowLateSubmission: true,
-        attachments: [
-          { name: 'Dataset.csv', size: '1.2 MB', url: '#' },
-          { name: 'Linear_Regression_Guide.pdf', size: '3.5 MB', url: '#' }
-        ]
-      }
-    ];
-
-    // Find the assignment that matches the ID
-    const foundAssignment = allAssignments.find(a => a.activityId === parseInt(id));
-    
-    if (foundAssignment) {
-      setAssignment(foundAssignment);
+  const fetchAssignment = async () => {
+    try {
+      const response = await assignmentAPI.getById(id);
+      const assignmentData = response.data;
       
-      // Check if assignment is completed and load submission data
-      const completedAssignments = JSON.parse(localStorage.getItem('completedAssignments') || '[]');
-      if (completedAssignments.includes(parseInt(id))) {
-        const submissions = JSON.parse(localStorage.getItem('submissions') || '{}');
-        const savedSubmission = submissions[id];
-        if (savedSubmission) {
-          setSubmission(savedSubmission);
-          setSubmissionText(savedSubmission.text || '');
-        }
+      // Format the assignment data
+      const formattedAssignment = {
+        ...assignmentData,
+        subject: assignmentData.subject?.subjectCode || 'N/A',
+        professor: assignmentData.subject?.teacherUsername || 'Unknown',
+        points: 100, // Default points, you can add this to backend
+        allowLateSubmission: true, // Default, you can add this to backend
+        attachments: [] // You can add file attachments to backend
+      };
+      
+      setAssignment(formattedAssignment);
+      
+      // Check if already submitted (completed)
+      if (assignmentData.completed) {
+        setSubmission({
+          submittedAt: assignmentData.createdAt,
+          status: 'Submitted'
+        });
       }
-    } else {
-      // If assignment not found, redirect back to assignments page
+    } catch (error) {
+      console.error('Error fetching assignment:', error);
       navigate('/assignments');
     }
-  }, [id, navigate]);
+  };
 
   const handleFileSelect = (e) => {
     const files = Array.from(e.target.files);
@@ -250,7 +62,9 @@ Grading Criteria:
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
-      // Mock submission - replace with actual API call
+      // Mark assignment as complete in backend
+      await assignmentAPI.markComplete(id);
+      
       const newSubmission = {
         submittedAt: new Date().toISOString(),
         files: selectedFiles,
@@ -260,24 +74,13 @@ Grading Criteria:
       
       setSubmission(newSubmission);
       
-      // Save to localStorage - completed assignments
-      const completedAssignments = JSON.parse(localStorage.getItem('completedAssignments') || '[]');
-      if (!completedAssignments.includes(parseInt(id))) {
-        completedAssignments.push(parseInt(id));
-        localStorage.setItem('completedAssignments', JSON.stringify(completedAssignments));
-      }
-      
-      // Save submission details
-      const submissions = JSON.parse(localStorage.getItem('submissions') || '{}');
-      submissions[id] = {
-        submittedAt: newSubmission.submittedAt,
-        text: submissionText,
-        fileNames: selectedFiles.map(f => f.name),
-        status: 'Submitted'
-      };
-      localStorage.setItem('submissions', JSON.stringify(submissions));
+      // Update local assignment state
+      setAssignment(prev => ({ ...prev, completed: true }));
       
       alert('Assignment submitted successfully!');
+      
+      // Refresh to show updated state
+      fetchAssignment();
     } catch (error) {
       console.error('Error submitting assignment:', error);
       alert('Failed to submit assignment. Please try again.');
@@ -402,9 +205,7 @@ Grading Criteria:
             <div className="section-card">
               <h2 className="section-title">Instructions</h2>
               <div className="instructions-text">
-                {assignment.instructions.split('\n').map((line, index) => (
-                  <p key={index}>{line}</p>
-                ))}
+                {assignment.description}
               </div>
             </div>
 

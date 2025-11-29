@@ -7,84 +7,37 @@ import '../css/Assignments.css';
 
 function Assignments({ user, onLogout }) {
   const navigate = useNavigate();
-  const [assignments, setAssignments] = useState([  //crud create assignments
-    {
-      activityId: 1,
-      title: 'Familiarizing GIT and Python Django',
-      description: 'To familiarize yourself with Git version control processes and Python Django framework through the creation of two distinct projects, each in its own public repository.',
-      dueDate: '2025-10-06',
-      estimatedTime: 180,
-      subject: 'CSIT327',
-      difficulty: 'Hard',
-      completed: false
-    },
-    {
-      activityId: 2,
-      title: 'Data Visualization',
-      description: 'Create the pivot tables (label your tables\' headers accordingly) below and add/put their charts in a DASHBOARD (1st sheet)',
-      dueDate: '2025-11-30',
-      estimatedTime: 120,
-      subject: 'IT365',
-      difficulty: 'Medium',
-      completed: false
-    },
-    {
-      activityId: 3,
-      title: 'Project ERD Design',
-      description: 'Design a comprehensive Entity-Relationship Diagram (ERD) for your capstone project database schema.',
-      dueDate: '2025-11-23',
-      estimatedTime: 90,
-      subject: 'CSIT340',
-      difficulty: 'Medium',
-      completed: false
-    },
-    {
-      activityId: 4,
-      title: 'Sprint 2 Progress Report',
-      description: 'Prepare a short report summarizing your team\'s accomplishments, blockers, and next sprint goals.',
-      dueDate: '2025-10-04',
-      estimatedTime: 30,
-      subject: 'IT317',
-      difficulty: 'Easy',
-      completed: false
-    },
-    {
-      activityId: 5,
-      title: 'Noli Me Tangere Reflection Essay',
-      description: 'Write a reflection paper discussing the relevance of Noli Me Tangere in today\'s society.',
-      dueDate: '2025-11-19',
-      estimatedTime: 60,
-      subject: 'RIZAL031',
-      difficulty: 'Easy',
-      completed: false
-    },
-    {
-      activityId: 6,
-      title: 'Linear Regression Activity',
-      description: 'Apply linear regression techniques to analyze and predict data patterns using Python',
-      dueDate: '2025-11-15',
-      estimatedTime: 150,
-      subject: 'IT365',
-      difficulty: 'Medium',
-      completed: false
-    }
-  ]);
+  const [assignments, setAssignments] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const [activeTab, setActiveTab] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [subjectFilter, setSubjectFilter] = useState('all');
   const [sortBy, setSortBy] = useState('dueDate');
 
-  // Load completed assignments from localStorage
+  // Fetch assignments from backend
   useEffect(() => {
-    const completedAssignments = JSON.parse(localStorage.getItem('completedAssignments') || '[]');
-    setAssignments(prevAssignments => 
-      prevAssignments.map(a => ({
+    if (user && user.id) {
+      fetchAssignments();
+    }
+  }, [user]);
+
+  const fetchAssignments = async () => {
+    setLoading(true);
+    try {
+      const response = await assignmentAPI.getByUser(user.id);
+      const assignmentsData = response.data.map(a => ({
         ...a,
-        completed: completedAssignments.includes(a.activityId)
-      }))
-    );
-  }, []);
+        subject: a.subject ? a.subject.subjectCode : 'N/A',
+        completed: a.completed || false
+      }));
+      setAssignments(assignmentsData);
+    } catch (error) {
+      console.error('Error fetching assignments:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Calculate counts for tabs
   const today = new Date();
