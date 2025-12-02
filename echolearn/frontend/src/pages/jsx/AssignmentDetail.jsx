@@ -9,10 +9,20 @@ function AssignmentDetail({ user, onLogout }) {
   const navigate = useNavigate();
   
   const [assignment, setAssignment] = useState(null);
+  const [originalAssignment, setOriginalAssignment] = useState(null);
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [submissionText, setSubmissionText] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submission, setSubmission] = useState(null);
+  const [submissions, setSubmissions] = useState([]);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editForm, setEditForm] = useState({
+    title: '',
+    description: '',
+    dueDate: '',
+    estimatedTime: '',
+    difficulty: 'MEDIUM'
+  });
 
   useEffect(() => {
     if (id && user) {
@@ -25,7 +35,10 @@ function AssignmentDetail({ user, onLogout }) {
       const response = await assignmentAPI.getById(id);
       const assignmentData = response.data;
       
-      // Format the assignment data
+      // Store original assignment data (with Subject object intact)
+      setOriginalAssignment(assignmentData);
+      
+      // Format the assignment data for display
       const formattedAssignment = {
         ...assignmentData,
         subject: assignmentData.subject?.subjectCode || 'N/A',
@@ -37,12 +50,40 @@ function AssignmentDetail({ user, onLogout }) {
       
       setAssignment(formattedAssignment);
       
-      // Check if already submitted (completed)
-      if (assignmentData.completed) {
-        setSubmission({
-          submittedAt: assignmentData.createdAt,
-          status: 'Submitted'
-        });
+      // Initialize edit form
+      setEditForm({
+        title: assignmentData.title || '',
+        description: assignmentData.description || '',
+        dueDate: assignmentData.dueDate || '',
+        estimatedTime: assignmentData.estimatedTime || '',
+        difficulty: assignmentData.difficulty || 'MEDIUM'
+      });
+      
+      // If teacher, fetch all submissions
+      if (user.role === 'TEACHER') {
+        try {
+          const submissionsResponse = await assignmentAPI.getAllSubmissions(id);
+          setSubmissions(submissionsResponse.data);
+        } catch (error) {
+          console.error('Error fetching submissions:', error);
+        }
+      }
+      
+      // Fetch submission if assignment is completed and user is student
+      if (assignmentData.completed && user && user.role === 'STUDENT') {
+        try {
+          const submissionResponse = await assignmentAPI.getSubmission(id, user.id);
+          const submissionData = submissionResponse.data;
+          setSubmission({
+            ...submissionData,
+            fileNames: submissionData.fileNames ? submissionData.fileNames.split(',') : [],
+            text: submissionData.submissionText || ''
+          });
+          // Also populate the form fields for editing
+          setSubmissionText(submissionData.submissionText || '');
+        } catch (error) {
+          console.error('Error fetching submission:', error);
+        }
       }
     } catch (error) {
       console.error('Error fetching assignment:', error);
@@ -62,30 +103,80 @@ function AssignmentDetail({ user, onLogout }) {
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
-      // Mark assignment as complete in backend
-      await assignmentAPI.markComplete(id);
+      // Prepare file names as comma-separated string
+      const fileNames = selectedFiles.map(f => f.name).join(',');
       
-      const newSubmission = {
-        submittedAt: new Date().toISOString(),
-        files: selectedFiles,
-        text: submissionText,
-        status: 'Submitted'
+      // Submit assignment to backend
+      const submissionData = {
+        studentId: user.id,
+        submissionText: submissionText,
+        fileNames: fileNames
       };
       
-      setSubmission(newSubmission);
-      
-      // Update local assignment state
-      setAssignment(prev => ({ ...prev, completed: true }));
+      await assignmentAPI.submit(id, submissionData);
       
       alert('Assignment submitted successfully!');
       
+      // Clear form
+      setSelectedFiles([]);
+      setSubmissionText('');
+      
       // Refresh to show updated state
-      fetchAssignment();
+      await fetchAssignment();
     } catch (error) {
       console.error('Error submitting assignment:', error);
-      alert('Failed to submit assignment. Please try again.');
+      if (error.response?.status === 409) {
+        alert('Assignment already submitted. Please unsubmit first to edit.');
+      } else {
+        alert('Failed to submit assignment. Please try again.');
+      }
     } finally {
       setIsSubmitting(false);
+    }
+  };
+  
+  const handleUnsubmit = async () => {
+    if (!window.confirm('Are you sure you want to unsubmit this assignment? You can edit and resubmit it.')) {
+      return;
+    }
+    
+    try {
+      await assignmentAPI.unsubmit(id, user.id);
+      
+      // Clear submission state
+      setSubmission(null);
+      
+      alert('Assignment unsubmitted successfully. You can now edit and resubmit.');
+      
+      // Refresh to show updated state
+      await fetchAssignment();
+    } catch (error) {
+      console.error('Error unsubmitting assignment:', error);
+      alert('Failed to unsubmit assignment. Please try again.');
+    }
+  };
+  
+  const handleUpdateAssignment = async () => {
+    try {
+      const updatedAssignment = {
+        ...originalAssignment,
+        title: editForm.title,
+        description: editForm.description,
+        dueDate: editForm.dueDate,
+        estimatedTime: parseInt(editForm.estimatedTime),
+        difficulty: editForm.difficulty
+      };
+      
+      await assignmentAPI.update(id, updatedAssignment);
+      
+      alert('Assignment updated successfully!');
+      setIsEditMode(false);
+      
+      // Refresh assignment data
+      await fetchAssignment();
+    } catch (error) {
+      console.error('Error updating assignment:', error);
+      alert('Failed to update assignment. Please try again.');
     }
   };
 
@@ -240,9 +331,71 @@ function AssignmentDetail({ user, onLogout }) {
             )}
 
             <div className="section-card submission-section">
-              <h2 className="section-title">Your Work</h2>
+              <h2 className="section-title">
+                {user.role === 'TEACHER' ? 'Student Submissions' : 'Your Work'}
+              </h2>
               
-              {submission ? (
+              {user.role === 'TEACHER' ? (
+                // Teacher view: Show all submissions
+                <div className="teacher-view">
+                  <div className="submissions-list">
+                    <div className="submissions-count">
+                      <div className="info-label">Submissions</div>
+                      <div className="info-value">{submissions.length}</div>
+                    </div>
+                    {submissions.length === 0 ? (
+                      <p className="no-submissions">No submissions yet</p>
+                    ) : (
+                      <div className="submissions-grid">
+                        {submissions.map((sub) => (
+                          <div key={sub.submissionId} className="submission-card">
+                            <div className="submission-header">
+                              <div className="student-info">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                  <circle cx="12" cy="7" r="4"></circle>
+                                </svg>
+                                <strong>{sub.student?.username || 'Student'}</strong>
+                              </div>
+                              <div className="submission-date">
+                                {formatDate(sub.submittedAt)}
+                              </div>
+                            </div>
+                            
+                            {sub.fileNames && (
+                              <div className="submission-files">
+                                <h4>Files:</h4>
+                                {sub.fileNames.split(',').map((fileName, idx) => (
+                                  <div key={idx} className="file-badge">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                      <polyline points="14 2 14 8 20 8"></polyline>
+                                    </svg>
+                                    {fileName}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                            
+                            {sub.submissionText && (
+                              <div className="submission-content">
+                                <h4>Comments:</h4>
+                                <p>{sub.submissionText}</p>
+                              </div>
+                            )}
+                            
+                            <div className="submission-status-badge">
+                              {sub.status}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                // Student view: Original submission form
+                submission ? (
                 <div className="submission-complete">
                   <div className="submission-status">
                     <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -275,20 +428,7 @@ function AssignmentDetail({ user, onLogout }) {
                     </div>
                   )}
                   
-                  <button className="btn-secondary" onClick={() => {
-                    setSubmission(null);
-                    setSubmissionText('');
-                    setSelectedFiles([]);
-                    // Remove from localStorage - completed assignments
-                    const completedAssignments = JSON.parse(localStorage.getItem('completedAssignments') || '[]');
-                    const updatedCompleted = completedAssignments.filter(aid => aid !== parseInt(id));
-                    localStorage.setItem('completedAssignments', JSON.stringify(updatedCompleted));
-                    
-                    // Remove submission details
-                    const submissions = JSON.parse(localStorage.getItem('submissions') || '{}');
-                    delete submissions[id];
-                    localStorage.setItem('submissions', JSON.stringify(submissions));
-                  }}>
+                  <button className="btn-secondary" onClick={handleUnsubmit}>
                     Unsubmit and Edit
                   </button>
                 </div>
@@ -367,6 +507,7 @@ function AssignmentDetail({ user, onLogout }) {
                     </button>
                   </div>
                 </div>
+              )
               )}
             </div>
           </div>
@@ -396,9 +537,104 @@ function AssignmentDetail({ user, onLogout }) {
                 <div className="info-label">Late Submission</div>
                 <div className="info-value">{assignment.allowLateSubmission ? 'Allowed' : 'Not allowed'}</div>
               </div>
+              {user.role === 'TEACHER' && (
+                <button 
+                  className="btn-edit-assignment"
+                  onClick={() => setIsEditMode(true)}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                  </svg>
+                  Edit Assignment
+                </button>
+              )}
             </div>
           </div>
         </div>
+        
+        {/* Edit Assignment Modal */}
+        {isEditMode && user.role === 'TEACHER' && (
+          <div className="modal-overlay" onClick={() => setIsEditMode(false)}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-header">
+                <h2>Edit Assignment</h2>
+                <button className="modal-close" onClick={() => setIsEditMode(false)}>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </button>
+              </div>
+              
+              <div className="modal-body">
+                <div className="form-group">
+                  <label>Title</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    value={editForm.title}
+                    onChange={(e) => setEditForm({...editForm, title: e.target.value})}
+                  />
+                </div>
+                
+                <div className="form-group">
+                  <label>Description</label>
+                  <textarea
+                    className="form-textarea"
+                    value={editForm.description}
+                    onChange={(e) => setEditForm({...editForm, description: e.target.value})}
+                    rows="4"
+                  />
+                </div>
+                
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Due Date</label>
+                    <input
+                      type="date"
+                      className="form-input"
+                      value={editForm.dueDate}
+                      onChange={(e) => setEditForm({...editForm, dueDate: e.target.value})}
+                    />
+                  </div>
+                  
+                  <div className="form-group">
+                    <label>Estimated Time (minutes)</label>
+                    <input
+                      type="number"
+                      className="form-input"
+                      value={editForm.estimatedTime}
+                      onChange={(e) => setEditForm({...editForm, estimatedTime: e.target.value})}
+                    />
+                  </div>
+                </div>
+                
+                <div className="form-group">
+                  <label>Difficulty</label>
+                  <select
+                    className="form-select"
+                    value={editForm.difficulty}
+                    onChange={(e) => setEditForm({...editForm, difficulty: e.target.value})}
+                  >
+                    <option value="EASY">Easy</option>
+                    <option value="MEDIUM">Medium</option>
+                    <option value="HARD">Hard</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div className="modal-footer">
+                <button className="btn-cancel" onClick={() => setIsEditMode(false)}>
+                  Cancel
+                </button>
+                <button className="btn-submit" onClick={handleUpdateAssignment}>
+                  Save Changes
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </Layout>
   );

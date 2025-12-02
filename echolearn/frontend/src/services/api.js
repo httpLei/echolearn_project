@@ -25,6 +25,10 @@ export const assignmentAPI = {
   update: (id, assignment) => api.put(`/assignments/${id}`, assignment),
   markComplete: (id) => api.put(`/assignments/${id}/complete`),
   delete: (id) => api.delete(`/assignments/${id}`),
+  submit: (assignmentId, submissionData) => api.post(`/assignments/${assignmentId}/submit`, submissionData),
+  unsubmit: (assignmentId, studentId) => api.delete(`/assignments/${assignmentId}/unsubmit?studentId=${studentId}`),
+  getSubmission: (assignmentId, studentId) => api.get(`/assignments/${assignmentId}/submission?studentId=${studentId}`),
+  getAllSubmissions: (assignmentId) => api.get(`/assignments/${assignmentId}/submissions`),
 };
 
 // Notification API
@@ -44,6 +48,12 @@ export const chatAPI = {
   sendMessage: (message) => api.post('/chats', message),
   editMessage: (chatId, content) => api.put(`/chats/${chatId}`, { content }),
   deleteMessage: (chatId) => api.delete(`/chats/${chatId}`),
+};
+
+// User API
+export const userAPI = {
+  searchUsers: (query, currentUserId) => api.get(`/users/search?query=${query}&currentUserId=${currentUserId}`),
+  getAllUsers: (currentUserId) => api.get(`/users/all?currentUserId=${currentUserId}`),
 };
 
 // Conversation API

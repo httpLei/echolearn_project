@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Layout from '../../components/Layout.jsx';
-import { conversationAPI } from '../../services/api';
+import { conversationAPI, userAPI } from '../../services/api';
 import '../css/Chat.css';
 
 function Chat({ user, onLogout }) {
@@ -14,13 +14,15 @@ function Chat({ user, onLogout }) {
   const [sideChatTitle, setSideChatTitle] = useState('');
   const [showSideChatModal, setShowSideChatModal] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
-  const [chatUsers, setChatUsers] = useState([]);
+  const [chatUsers, setChatUsers] = useState([]); // Existing conversations
+  const [allUsers, setAllUsers] = useState([]); // All users for search
   const [loading, setLoading] = useState(true);
   const fileInputRef = useRef(null);
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
     fetchConversations();
+    fetchAllUsers();
   }, []);
 
   useEffect(() => {
@@ -36,6 +38,15 @@ function Chat({ user, onLogout }) {
       console.error('Error fetching conversations:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchAllUsers = async () => {
+    try {
+      const response = await userAPI.getAllUsers(user.id);
+      setAllUsers(response.data);
+    } catch (error) {
+      console.error('Error fetching all users:', error);
     }
   };
 
@@ -66,15 +77,61 @@ function Chat({ user, onLogout }) {
     }
   };
 
-  const filteredUsers = chatUsers.filter(chatUser =>
-    chatUser.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Filter logic: if search query exists, search all users; otherwise show existing conversations
+  const filteredUsers = searchQuery.trim() 
+    ? allUsers
+        .filter(u => 
+          u.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          u.email.toLowerCase().includes(searchQuery.toLowerCase())
+        )
+        .map(u => ({
+          id: null, // No conversation ID yet
+          userId: u.id,
+          name: u.username,
+          username: u.username,
+          avatar: u.username.substring(0, 1).toUpperCase(),
+          lastMessage: 'Start a new conversation',
+          time: null,
+          isNewUser: true // Flag to indicate this is a new user
+        }))
+    : chatUsers.filter(chatUser =>
+        chatUser.name.toLowerCase().includes(searchQuery.toLowerCase())
+      );
 
-  const handleUserClick = (chatUser) => {
-    setSelectedChat(chatUser);
-    setSelectedSideChat(null);
-    fetchMessages(chatUser.id);
-    fetchSideChats(chatUser.id);
+  const handleUserClick = async (chatUser) => {
+    // If this is a new user (no existing conversation), create one
+    if (chatUser.isNewUser) {
+      try {
+        const response = await conversationAPI.startConversation(user.id, chatUser.userId);
+        const newConversation = {
+          id: response.data.conversationId,
+          userId: chatUser.userId,
+          name: chatUser.name,
+          username: chatUser.username,
+          avatar: chatUser.avatar,
+          lastMessage: 'No messages yet',
+          time: response.data.createdAt
+        };
+        
+        setSelectedChat(newConversation);
+        setSelectedSideChat(null);
+        setMessages([]);
+        setSideChats([]);
+        
+        // Add to chatUsers so it appears in the conversation list
+        setChatUsers([newConversation, ...chatUsers]);
+        setSearchQuery(''); // Clear search to show conversation list
+      } catch (error) {
+        console.error('Error starting conversation:', error);
+        alert('Failed to start conversation');
+      }
+    } else {
+      // Existing conversation
+      setSelectedChat(chatUser);
+      setSelectedSideChat(null);
+      fetchMessages(chatUser.id);
+      fetchSideChats(chatUser.id);
+    }
   };
 
   const handleSendMessage = async (e) => {
@@ -220,7 +277,7 @@ function Chat({ user, onLogout }) {
             <input
               type="text"
               className="search-input"
-              placeholder="Search conversations..."
+              placeholder="Search users or conversations..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -233,13 +290,13 @@ function Chat({ user, onLogout }) {
               </div>
             ) : filteredUsers.length === 0 ? (
               <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-secondary)' }}>
-                No conversations found
+                {searchQuery.trim() ? 'No users found' : 'No conversations found'}
               </div>
             ) : (
               filteredUsers.map((chatUser) => (
                 <div 
-                  key={chatUser.id} 
-                  className={`chat-user-item ${selectedChat?.id === chatUser.id ? 'active' : ''}`}
+                  key={chatUser.id || chatUser.userId} 
+                  className={`chat-user-item ${selectedChat?.id === chatUser.id || selectedChat?.userId === chatUser.userId ? 'active' : ''}`}
                   onClick={() => handleUserClick(chatUser)}
                 >
                   <div className="chat-user-avatar">{chatUser.avatar}</div>

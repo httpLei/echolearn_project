@@ -4,62 +4,32 @@ import { notificationAPI } from '../../services/api.js';
 import '../css/Notifications.css';
 
 function Notifications({ user, onLogout }) {
-  const [notifications, setNotifications] = useState([
-    {
-      notifId: 1,
-      title: 'Assignment Due Soon',
-      message: 'Create the pivot tables (label your tables\' headers accordingly) below and add/put their charts in a DASHBOARD (1st sheet)',
-      createdAt: '2025-11-05T08:59:48',
-      isRead: false,
-      type: 'ASSIGNMENT'
-    },
-    {
-      notifId: 2,
-      title: 'New Message',
-      message: 'Prof. Amparo replied to your question about the Django',
-      createdAt: '2025-11-05T08:59:48',
-      isRead: false,
-      type: 'MESSAGE'
-    },
-    {
-      notifId: 3,
-      title: 'Class Reminder',
-      message: 'CSIT340 class starts in 30 minutes',
-      createdAt: '2025-11-20T09:30:00',
-      isRead: false,
-      type: 'ANNOUNCEMENT'
-    },
-    {
-      notifId: 4,
-      title: 'Grade Posted',
-      message: 'Your Noli Me Tangere Reflection grade has been posted',
-      createdAt: '2025-10-05T14:20:00',
-      isRead: false,
-      type: 'ANNOUNCEMENT'
-    },
-    {
-      notifId: 5,
-      title: 'Event Reminder',
-      message: 'CCS Acquaintance Party starts at 5:00 PM today',
-      createdAt: '2025-10-28T12:00:00',
-      isRead: false,
-      type: 'ANNOUNCEMENT'
-    },
-    {
-      notifId: 6,
-      title: 'New Announcement',
-      message: 'The Final Project Guidelines have been uploaded to the class',
-      createdAt: '2025-11-13T18:00:00',
-      isRead: false,
-      type: 'ANNOUNCEMENT'
-    }
-  ]);
-
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('Unread');
   const [openMenuId, setOpenMenuId] = useState(null);
   const menuRef = useRef(null);
   const unreadCount = notifications.filter(n => !n.isRead).length;
   const totalCount = notifications.length;
+
+  // Fetch notifications from backend
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        setLoading(true);
+        const response = await notificationAPI.getByUser(user.id);
+        setNotifications(response.data);
+      } catch (error) {
+        console.error('Error fetching notifications:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (user?.id) {
+      fetchNotifications();
+    }
+  }, [user]);
 
   // Close menu when clicking outside
   useEffect(() => {
@@ -166,7 +136,7 @@ function Notifications({ user, onLogout }) {
           </div>
         </div>
 
-        <div className="notification-tabs">
+        <div className="notification-filters">
           <button 
             className={`tab ${filter === 'Unread' ? 'active' : ''}`}
             onClick={() => setFilter('Unread')}
