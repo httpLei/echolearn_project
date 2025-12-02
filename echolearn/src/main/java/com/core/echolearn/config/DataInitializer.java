@@ -134,9 +134,8 @@ public class DataInitializer implements CommandLineRunner {
             });
         
         
-        System.out.println("✅ Sample data initialized successfully!");
-        System.out.println("📧 Student Login - Email: jake.sim@example.com | Password: password123");
-        System.out.println("📧 Teacher Login - Email: joemarieamparo@example.com | Password: password123");
-        System.out.println("💬 Chat Users: pranzrabe, richemmaebigno, maxineocampo, lerahcaones, ericadabalos, clydebenolirao");
+        System.out.println("Sample data initialized:");
+        System.out.println("- Student Login - Email: lerah.caones@example.com | Password: password123");
+        System.out.println("- Teacher Login - Email: joemarieamparo@example.com | Password: password123");
     }
 }

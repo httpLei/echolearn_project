@@ -4,8 +4,10 @@ import com.core.echolearn.entity.Conversation;
 import com.core.echolearn.entity.Message;
 import com.core.echolearn.entity.SideChat;
 import com.core.echolearn.entity.User;
+import com.core.echolearn.entity.Notification;
 import com.core.echolearn.service.ConversationService;
 import com.core.echolearn.service.UserService;
+import com.core.echolearn.service.NotificationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +26,9 @@ public class ConversationController {
     
     @Autowired
     private UserService userService;
+    
+    @Autowired
+    private NotificationService notificationService;
     
     // Get all conversations for a user
     @GetMapping("/user/{userId}")
@@ -143,6 +148,25 @@ public class ConversationController {
             Message message = conversationService.sendMessage(conversationId, senderOpt.get(), content);
             
             if (message != null) {
+                // Get the conversation to find the recipient
+                Optional<Conversation> convOpt = conversationService.findById(conversationId);
+                if (convOpt.isPresent()) {
+                    Conversation conversation = convOpt.get();
+                    // Determine the recipient (the other user in the conversation)
+                    User recipient = conversation.getUser1().getId().equals(senderId) ? 
+                                    conversation.getUser2() : conversation.getUser1();
+                    
+                    // Create notification for the recipient
+                    Notification notification = new Notification(
+                        "New Message",
+                        senderOpt.get().getUsername() + " sent you a message",
+                        "MESSAGE",
+                        conversationId
+                    );
+                    notification.setUser(recipient);
+                    notificationService.createNotification(notification);
+                }
+                
                 Map<String, Object> response = new HashMap<>();
                 response.put("id", message.getMessageId());
                 response.put("senderId", message.getSender().getId());

@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Layout from '../../components/Layout.jsx';
 import { notificationAPI } from '../../services/api.js';
 import '../css/Notifications.css';
 
 function Notifications({ user, onLogout }) {
+  const navigate = useNavigate();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('Unread');
@@ -53,6 +55,40 @@ function Notifications({ user, onLogout }) {
       ));
     } catch (error) {
       console.error('Error marking notification as read:', error);
+    }
+  };
+
+  const handleNotificationClick = async (notification) => {
+    try {
+      // Mark as read and get navigation info
+      const response = await notificationAPI.handleClick(notification.notifId);
+      console.log('Notification click response:', response.data);
+      const { type, referenceId } = response.data;
+      console.log('Type:', type, 'ReferenceId:', referenceId);
+      
+      // Update local state
+      setNotifications(notifications.map(n => 
+        n.notifId === notification.notifId ? { ...n, isRead: true } : n
+      ));
+      
+      // Navigate based on notification type
+      if (type === 'MESSAGE' && referenceId) {
+        console.log('Navigating to chat with conversationId:', referenceId);
+        navigate('/chat', { state: { conversationId: referenceId } });
+      } else if (type === 'ASSIGNMENT' && referenceId) {
+        console.log('Navigating to assignment:', referenceId);
+        navigate(`/assignments/${referenceId}`);
+      } else if (type === 'POST' && referenceId) {
+        console.log('Navigating to class:', referenceId);
+        navigate(`/class/${referenceId}`);
+      } else if (type === 'REPLY' && referenceId) {
+        console.log('Navigating to class from reply:', referenceId);
+        navigate(`/class/${referenceId}`);
+      } else {
+        console.log('No navigation - type or referenceId missing');
+      }
+    } catch (error) {
+      console.error('Error handling notification click:', error);
     }
   };
 
@@ -161,13 +197,15 @@ function Notifications({ user, onLogout }) {
               <div 
                 key={notification.notifId} 
                 className={`notification-card ${!notification.isRead ? 'unread' : ''}`}
+                onClick={() => handleNotificationClick(notification)}
+                style={{ cursor: 'pointer' }}
               >
                 <div className="notification-content">
                   <h3 className="notification-title">{notification.title}</h3>
                   <p className="notification-message">{notification.message}</p>
                   <p className="notification-date">{formatDate(notification.createdAt)}</p>
                 </div>
-                <div className="notification-actions">
+                <div className="notification-actions" onClick={(e) => e.stopPropagation()}>
                   {!notification.isRead && (
                     <button 
                       className="btn-mark-read"

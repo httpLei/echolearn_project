@@ -33,13 +33,7 @@ public class AssignmentSubmissionService {
         
         // Create new submission
         AssignmentSubmission submission = new AssignmentSubmission(assignment, student, submissionText, fileNames);
-        AssignmentSubmission saved = submissionRepository.save(submission);
-        
-        // Mark assignment as completed
-        assignment.setCompleted(true);
-        assignmentRepository.save(assignment);
-        
-        return saved;
+        return submissionRepository.save(submission);
     }
     
     // Unsubmit an assignment
@@ -48,10 +42,6 @@ public class AssignmentSubmissionService {
         Optional<AssignmentSubmission> submission = submissionRepository.findByAssignmentAndStudent(assignment, student);
         if (submission.isPresent()) {
             submissionRepository.delete(submission.get());
-            
-            // Mark assignment as not completed
-            assignment.setCompleted(false);
-            assignmentRepository.save(assignment);
         } else {
             throw new IllegalStateException("No submission found to unsubmit");
         }

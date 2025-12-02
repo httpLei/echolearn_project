@@ -33,4 +33,12 @@ public interface AssignmentRepository extends JpaRepository<Assignment, Long> {
     // Get assignments for a student: assignments created by teacher (user=null) OR assigned to student
     @Query("SELECT a FROM Assignment a WHERE a.subject = :subject AND (a.user IS NULL OR a.user = :user) ORDER BY a.dueDate ASC")
     List<Assignment> findBySubjectForStudent(@Param("subject") Subject subject, @Param("user") User user);
+    
+    // Get all assignments for a user across all enrolled subjects (includes teacher-created assignments)
+    @Query("SELECT a FROM Assignment a JOIN a.subject s JOIN Enrollment e ON e.subject = s WHERE e.student = :user AND (a.user IS NULL OR a.user = :user) ORDER BY a.dueDate ASC")
+    List<Assignment> findAllForStudent(@Param("user") User user);
+    
+    // Get all assignments from subjects a teacher teaches
+    @Query("SELECT a FROM Assignment a WHERE a.subject.teacher.id = :teacherId ORDER BY a.dueDate ASC")
+    List<Assignment> findAllForTeacher(@Param("teacherId") Long teacherId);
 }

@@ -23,4 +23,7 @@ public interface AssignmentSubmissionRepository extends JpaRepository<Assignment
     
     // Check if student has submitted assignment
     boolean existsByAssignmentAndStudent(Assignment assignment, User student);
+    
+    // Delete all submissions for an assignment
+    void deleteByAssignment(Assignment assignment);
 }

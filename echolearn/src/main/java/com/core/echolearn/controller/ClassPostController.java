@@ -21,8 +21,12 @@ import org.springframework.web.bind.annotation.RestController;
 import com.core.echolearn.entity.ClassPost;
 import com.core.echolearn.entity.ClassReply;
 import com.core.echolearn.entity.User;
+import com.core.echolearn.entity.Notification;
+import com.core.echolearn.entity.Enrollment;
 import com.core.echolearn.service.ClassPostService;
 import com.core.echolearn.service.UserService;
+import com.core.echolearn.service.NotificationService;
+import com.core.echolearn.repository.EnrollmentRepository;
 
 @RestController
 @RequestMapping("/api/classes/{subjectId}/posts")
@@ -34,6 +38,12 @@ public class ClassPostController {
     
     @Autowired
     private UserService userService;
+    
+    @Autowired
+    private NotificationService notificationService;
+    
+    @Autowired
+    private EnrollmentRepository enrollmentRepository;
     
     private Map<String, Object> createSuccessResponse(Object data) {
         Map<String, Object> response = new HashMap<>();
@@ -80,6 +90,22 @@ public class ClassPostController {
             
             ClassPost savedPost = classPostService.createPost(subjectId, authorId, content);
             
+            // Create notifications for all users in the subject except the author
+            List<Enrollment> enrollments = enrollmentRepository.findAll();
+            for (Enrollment enrollment : enrollments) {
+                if (enrollment.getSubject().getSubjectId().equals(subjectId) && 
+                    !enrollment.getStudent().getId().equals(authorId)) {
+                    Notification notification = new Notification(
+                        "New Class Post",
+                        authorOpt.get().getUsername() + " posted in " + enrollment.getSubject().getSubjectCode(),
+                        "POST",
+                        subjectId
+                    );
+                    notification.setUser(enrollment.getStudent());
+                    notificationService.createNotification(notification);
+                }
+            }
+            
             return ResponseEntity.status(HttpStatus.CREATED).body(createSuccessResponse(savedPost));
             
         } catch (IllegalArgumentException e) {
@@ -117,6 +143,23 @@ public class ClassPostController {
             }
             
             ClassReply savedReply = classPostService.createReply(postId, authorId, content);
+            
+            // Get the post to access its author and subject
+            ClassPost post = savedReply.getPost();
+            User replyAuthor = savedReply.getAuthor();
+            
+            // Create notification for the post author (if it's not the same person replying)
+            if (!post.getAuthor().getId().equals(authorId)) {
+                Notification notification = new Notification(
+                    "New Reply",
+                    replyAuthor.getUsername() + " replied to your post in " + post.getSubject().getSubjectCode(),
+                    "REPLY",
+                    post.getSubject().getSubjectId()
+                );
+                notification.setUser(post.getAuthor());
+                notificationService.createNotification(notification);
+            }
+            
             return ResponseEntity.status(HttpStatus.CREATED).body(createSuccessResponse(savedReply));
             
         } catch (IllegalArgumentException e) {

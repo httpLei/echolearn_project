@@ -1,9 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import Layout from '../../components/Layout.jsx';
 import { conversationAPI, userAPI } from '../../services/api';
 import '../css/Chat.css';
 
 function Chat({ user, onLogout }) {
+  const location = useLocation();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedChat, setSelectedChat] = useState(null);
   const [messageText, setMessageText] = useState('');
@@ -28,6 +30,16 @@ function Chat({ user, onLogout }) {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, selectedChat, sideChatMessages, selectedSideChat]);
+
+  // Handle navigation from notification
+  useEffect(() => {
+    if (location.state?.conversationId && chatUsers.length > 0) {
+      const conversation = chatUsers.find(c => c.id === location.state.conversationId);
+      if (conversation) {
+        handleUserClick(conversation);
+      }
+    }
+  }, [location.state, chatUsers]);
 
   const fetchConversations = async () => {
     try {
@@ -277,7 +289,7 @@ function Chat({ user, onLogout }) {
             <input
               type="text"
               className="search-input"
-              placeholder="Search users or conversations..."
+              placeholder="Search..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />

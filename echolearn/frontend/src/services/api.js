@@ -39,6 +39,7 @@ export const notificationAPI = {
   markAsRead: (id) => api.put(`/notifications/${id}/read`),
   markAllAsRead: (userId) => api.put(`/notifications/user/${userId}/read-all`),
   delete: (id) => api.delete(`/notifications/${id}`),
+  handleClick: (id) => api.post(`/notifications/${id}/click`),
 };
 
 // Chat API

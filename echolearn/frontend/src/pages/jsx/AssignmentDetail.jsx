@@ -42,7 +42,7 @@ function AssignmentDetail({ user, onLogout }) {
       const formattedAssignment = {
         ...assignmentData,
         subject: assignmentData.subject?.subjectCode || 'N/A',
-        professor: assignmentData.subject?.teacherUsername || 'Unknown',
+        professor: assignmentData.subject?.teacher?.username || assignmentData.subject?.teacher?.name || 'Unknown',
         points: 100, // Default points, you can add this to backend
         allowLateSubmission: true, // Default, you can add this to backend
         attachments: [] // You can add file attachments to backend
