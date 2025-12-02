@@ -1,65 +1,37 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Layout from '../../components/Layout.jsx';
 import { notificationAPI } from '../../services/api.js';
 import '../css/Notifications.css';
 
 function Notifications({ user, onLogout }) {
-  const [notifications, setNotifications] = useState([
-    {
-      notifId: 1,
-      title: 'Assignment Due Soon',
-      message: 'Create the pivot tables (label your tables\' headers accordingly) below and add/put their charts in a DASHBOARD (1st sheet)',
-      createdAt: '2025-11-05T08:59:48',
-      isRead: false,
-      type: 'ASSIGNMENT'
-    },
-    {
-      notifId: 2,
-      title: 'New Message',
-      message: 'Prof. Amparo replied to your question about the Django',
-      createdAt: '2025-11-05T08:59:48',
-      isRead: false,
-      type: 'MESSAGE'
-    },
-    {
-      notifId: 3,
-      title: 'Class Reminder',
-      message: 'CSIT340 class starts in 30 minutes',
-      createdAt: '2025-11-20T09:30:00',
-      isRead: false,
-      type: 'ANNOUNCEMENT'
-    },
-    {
-      notifId: 4,
-      title: 'Grade Posted',
-      message: 'Your Noli Me Tangere Reflection grade has been posted',
-      createdAt: '2025-10-05T14:20:00',
-      isRead: false,
-      type: 'ANNOUNCEMENT'
-    },
-    {
-      notifId: 5,
-      title: 'Event Reminder',
-      message: 'CCS Acquaintance Party starts at 5:00 PM today',
-      createdAt: '2025-10-28T12:00:00',
-      isRead: false,
-      type: 'ANNOUNCEMENT'
-    },
-    {
-      notifId: 6,
-      title: 'New Announcement',
-      message: 'The Final Project Guidelines have been uploaded to the class',
-      createdAt: '2025-11-13T18:00:00',
-      isRead: false,
-      type: 'ANNOUNCEMENT'
-    }
-  ]);
-
+  const navigate = useNavigate();
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('Unread');
   const [openMenuId, setOpenMenuId] = useState(null);
   const menuRef = useRef(null);
   const unreadCount = notifications.filter(n => !n.isRead).length;
   const totalCount = notifications.length;
+
+  // Fetch notifications from backend
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        setLoading(true);
+        const response = await notificationAPI.getByUser(user.id);
+        setNotifications(response.data);
+      } catch (error) {
+        console.error('Error fetching notifications:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (user?.id) {
+      fetchNotifications();
+    }
+  }, [user]);
 
   // Close menu when clicking outside
   useEffect(() => {
@@ -83,6 +55,40 @@ function Notifications({ user, onLogout }) {
       ));
     } catch (error) {
       console.error('Error marking notification as read:', error);
+    }
+  };
+
+  const handleNotificationClick = async (notification) => {
+    try {
+      // Mark as read and get navigation info
+      const response = await notificationAPI.handleClick(notification.notifId);
+      console.log('Notification click response:', response.data);
+      const { type, referenceId } = response.data;
+      console.log('Type:', type, 'ReferenceId:', referenceId);
+      
+      // Update local state
+      setNotifications(notifications.map(n => 
+        n.notifId === notification.notifId ? { ...n, isRead: true } : n
+      ));
+      
+      // Navigate based on notification type
+      if (type === 'MESSAGE' && referenceId) {
+        console.log('Navigating to chat with conversationId:', referenceId);
+        navigate('/chat', { state: { conversationId: referenceId } });
+      } else if (type === 'ASSIGNMENT' && referenceId) {
+        console.log('Navigating to assignment:', referenceId);
+        navigate(`/assignments/${referenceId}`);
+      } else if (type === 'POST' && referenceId) {
+        console.log('Navigating to class:', referenceId);
+        navigate(`/class/${referenceId}`);
+      } else if (type === 'REPLY' && referenceId) {
+        console.log('Navigating to class from reply:', referenceId);
+        navigate(`/class/${referenceId}`);
+      } else {
+        console.log('No navigation - type or referenceId missing');
+      }
+    } catch (error) {
+      console.error('Error handling notification click:', error);
     }
   };
 
@@ -166,7 +172,7 @@ function Notifications({ user, onLogout }) {
           </div>
         </div>
 
-        <div className="notification-tabs">
+        <div className="notification-filters">
           <button 
             className={`tab ${filter === 'Unread' ? 'active' : ''}`}
             onClick={() => setFilter('Unread')}
@@ -191,13 +197,15 @@ function Notifications({ user, onLogout }) {
               <div 
                 key={notification.notifId} 
                 className={`notification-card ${!notification.isRead ? 'unread' : ''}`}
+                onClick={() => handleNotificationClick(notification)}
+                style={{ cursor: 'pointer' }}
               >
                 <div className="notification-content">
                   <h3 className="notification-title">{notification.title}</h3>
                   <p className="notification-message">{notification.message}</p>
                   <p className="notification-date">{formatDate(notification.createdAt)}</p>
                 </div>
-                <div className="notification-actions">
+                <div className="notification-actions" onClick={(e) => e.stopPropagation()}>
                   {!notification.isRead && (
                     <button 
                       className="btn-mark-read"

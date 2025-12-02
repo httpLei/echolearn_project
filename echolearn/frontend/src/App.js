@@ -5,6 +5,7 @@ import SignIn from './pages/jsx/SignIn.jsx';
 import SignUp from './pages/jsx/SignUp.jsx';
 import Dashboard from './pages/jsx/Dashboard.jsx';
 import Assignments from './pages/jsx/Assignments.jsx';
+import CreateAssignment from './pages/jsx/CreateAssignment.jsx';
 import AssignmentDetail from './pages/jsx/AssignmentDetail.jsx';
 import Notifications from './pages/jsx/Notifications.jsx';
 import Chat from './pages/jsx/Chat.jsx';
@@ -42,6 +43,7 @@ function App() {
           <Route path="/signup" element={<SignUp onLogin={handleLogin} />} />
           <Route path="/dashboard" element={user ? <Dashboard user={user} onLogout={handleLogout} /> : <Navigate to="/" />} />
           <Route path="/assignments" element={user ? <Assignments user={user} onLogout={handleLogout} /> : <Navigate to="/" />} />
+          <Route path="/assignments/create" element={user ? <CreateAssignment user={user} onLogout={handleLogout} /> : <Navigate to="/" />} />
           <Route path="/assignments/:id" element={user ? <AssignmentDetail user={user} onLogout={handleLogout} /> : <Navigate to="/" />} />
           <Route path="/notifications" element={user ? <Notifications user={user} onLogout={handleLogout} /> : <Navigate to="/" />} />
           <Route path="/calendar" element={user ? <Calendar user={user} onLogout={handleLogout} /> : <Navigate to="/" />} />

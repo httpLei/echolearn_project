@@ -3,12 +3,40 @@
   margin: 0 auto;
 }
 
+.assignments-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
 .page-title {
   font-size: 32px;
   font-weight: 700;
   color: var(--text-primary);
-  margin-bottom: 24px;
+  margin: 0;
   transition: color 0.3s ease;
+}
+
+.btn-create-assignment {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.btn-create-assignment:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
 
 .assignments-controls {
@@ -26,7 +54,7 @@
 
 .search-icon {
   position: absolute;
-  left: 8px;
+  left: 14px;
   top: 50%;
   transform: translateY(-50%);
   color: #9ca3af;
@@ -36,7 +64,7 @@
 
 .search-input {
   width: 100%;
-  padding: 10px 12px 10px 40px;
+  padding: 10px 12px 10px 42px;
   border: 1px solid var(--border-color);
   border-radius: 8px;
   font-size: 14px;
@@ -134,6 +162,30 @@
   display: flex;
   gap: 10px;
   flex: 1;
+}
+
+.assignment-actions-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.btn-delete-assignment {
+  padding: 8px;
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  cursor: pointer;
+  color: #8E1616;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-delete-assignment:hover {
+  background: rgba(142, 22, 22, 0.1);
+  border-color: #8E1616;
 }
 
 .alert-icon {

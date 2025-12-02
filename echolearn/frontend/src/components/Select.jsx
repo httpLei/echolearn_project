@@ -65,18 +65,27 @@ export function SelectContent({ children, className, value, onValueChange }) {
       {React.Children.map(children, child => 
         child && React.cloneElement(child, { 
           isSelected: child.props.value === value,
-          onClick: () => onValueChange(child.props.value)
+          onClick: () => {
+            console.log('SelectContent onClick for value:', child.props.value);
+            onValueChange(child.props.value);
+          }
         })
       )}
     </div>
   );
 }
 
-export function SelectItem({ value, children, className, isSelected, onClick }) {
+export function SelectItem({ value, children, className, isSelected, onClick, disabled }) {
   return (
     <div 
-      className={`select-item ${className || ''} ${isSelected ? 'selected' : ''}`}
-      onClick={onClick}
+      className={`select-item ${className || ''} ${isSelected ? 'selected' : ''} ${disabled ? 'disabled' : ''}`}
+      onClick={(e) => {
+        console.log('SelectItem clicked:', value, 'onClick exists?', !!onClick);
+        if (!disabled && onClick) {
+          console.log('Calling onClick for', value);
+          onClick();
+        }
+      }}
     >
       {children}
     </div>

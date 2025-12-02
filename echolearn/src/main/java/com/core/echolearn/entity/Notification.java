@@ -29,6 +29,9 @@ public class Notification {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
     
+    @Column(name = "reference_id")
+    private Long referenceId; // For navigation: assignmentId, conversationId, etc.
+    
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
@@ -52,6 +55,15 @@ public class Notification {
         this.title = title;
         this.message = message;
         this.type = type;
+        this.isRead = false;
+        this.status = "ACTIVE";
+    }
+    
+    public Notification(String title, String message, String type, Long referenceId) {
+        this.title = title;
+        this.message = message;
+        this.type = type;
+        this.referenceId = referenceId;
         this.isRead = false;
         this.status = "ACTIVE";
     }
@@ -119,6 +131,14 @@ public class Notification {
     
     public void setUser(User user) {
         this.user = user;
+    }
+    
+    public Long getReferenceId() {
+        return referenceId;
+    }
+    
+    public void setReferenceId(Long referenceId) {
+        this.referenceId = referenceId;
     }
     
     // Business method

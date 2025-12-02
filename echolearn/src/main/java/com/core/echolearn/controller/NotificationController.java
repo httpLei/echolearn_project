@@ -91,6 +91,25 @@ public class NotificationController {
         }
     }
     
+    @PostMapping("/{id}/click")
+    public ResponseEntity<?> handleNotificationClick(@PathVariable Long id) {
+        try {
+            Notification notification = notificationService.markAsRead(id);
+            if (notification != null) {
+                Map<String, Object> response = new HashMap<>();
+                response.put("type", notification.getType());
+                response.put("referenceId", notification.getReferenceId());
+                response.put("notification", notification);
+                return ResponseEntity.ok(response);
+            }
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body("Notification not found");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Error: " + e.getMessage());
+        }
+    }
+    
     @PutMapping("/user/{userId}/read-all")
     public ResponseEntity<?> markAllAsRead(@PathVariable Long userId) {
         try {

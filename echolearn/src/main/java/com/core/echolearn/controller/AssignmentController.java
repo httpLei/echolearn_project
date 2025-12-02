@@ -1,18 +1,27 @@
 package com.core.echolearn.controller;
 
 import com.core.echolearn.entity.Assignment;
+import com.core.echolearn.entity.AssignmentSubmission;
 import com.core.echolearn.entity.User;
 import com.core.echolearn.entity.Subject;
+import com.core.echolearn.entity.Notification;
+import com.core.echolearn.entity.Enrollment;
 import com.core.echolearn.service.AssignmentService;
+import com.core.echolearn.service.AssignmentSubmissionService;
 import com.core.echolearn.service.UserService;
 import com.core.echolearn.service.SubjectService;
+import com.core.echolearn.service.NotificationService;
+import com.core.echolearn.repository.EnrollmentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/assignments")
@@ -23,10 +32,19 @@ public class AssignmentController {
     private AssignmentService assignmentService;
     
     @Autowired
+    private AssignmentSubmissionService submissionService;
+    
+    @Autowired
     private UserService userService;
     
     @Autowired
     private SubjectService subjectService;
+    
+    @Autowired
+    private NotificationService notificationService;
+    
+    @Autowired
+    private EnrollmentRepository enrollmentRepository;
     
     @GetMapping("/user/{userId}")
     public ResponseEntity<?> getAssignmentsByUser(@PathVariable Long userId) { //get all the assignements of a user
@@ -37,7 +55,35 @@ public class AssignmentController {
                     .body("User not found");
             }
             
-            List<Assignment> assignments = assignmentService.getAssignmentsByUser(userOpt.get());
+            User user = userOpt.get();
+            List<Assignment> assignments = assignmentService.getAssignmentsByUser(user);
+            
+            // For students, add submission status to each assignment
+            if ("STUDENT".equals(user.getRole())) {
+                List<Map<String, Object>> assignmentsWithStatus = assignments.stream()
+                    .map(assignment -> {
+                        Map<String, Object> assignmentMap = new HashMap<>();
+                        assignmentMap.put("activityId", assignment.getActivityId());
+                        assignmentMap.put("title", assignment.getTitle());
+                        assignmentMap.put("description", assignment.getDescription());
+                        assignmentMap.put("dueDate", assignment.getDueDate());
+                        assignmentMap.put("estimatedTime", assignment.getEstimatedTime());
+                        assignmentMap.put("difficulty", assignment.getDifficulty());
+                        assignmentMap.put("createdAt", assignment.getCreatedAt());
+                        assignmentMap.put("subject", assignment.getSubject());
+                        assignmentMap.put("user", assignment.getUser());
+                        
+                        // Check if student has submitted
+                        boolean hasSubmitted = submissionService.hasSubmitted(assignment, user);
+                        assignmentMap.put("completed", hasSubmitted);
+                        
+                        return assignmentMap;
+                    })
+                    .collect(java.util.stream.Collectors.toList());
+                
+                return ResponseEntity.ok(assignmentsWithStatus);
+            }
+            
             return ResponseEntity.ok(assignments);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -64,6 +110,31 @@ public class AssignmentController {
     public ResponseEntity<?> createAssignment(@RequestBody Assignment assignment) {
         try {
             Assignment savedAssignment = assignmentService.createAssignment(assignment);
+            
+            // Create notifications for all enrolled students in the subject
+            if (savedAssignment.getSubject() != null) {
+                Long subjectId = savedAssignment.getSubject().getSubjectId();
+                Optional<Subject> subjectOpt = subjectService.getSubjectEntityById(subjectId);
+                
+                if (subjectOpt.isPresent()) {
+                    Subject subject = subjectOpt.get();
+                    List<Enrollment> enrollments = enrollmentRepository.findAll();
+                    for (Enrollment enrollment : enrollments) {
+                        if (enrollment.getSubject().getSubjectId().equals(subjectId)) {
+                            Notification notification = new Notification(
+                                "New Assignment Created",
+                                "New assignment '" + savedAssignment.getTitle() + "' has been posted in " + 
+                                subject.getSubjectCode(),
+                                "ASSIGNMENT",
+                                savedAssignment.getActivityId()
+                            );
+                            notification.setUser(enrollment.getStudent());
+                            notificationService.createNotification(notification);
+                        }
+                    }
+                }
+            }
+            
             return ResponseEntity.status(HttpStatus.CREATED).body(savedAssignment);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -143,8 +214,153 @@ public class AssignmentController {
                     .body("User not found");
             }
             
-            List<Assignment> assignments = assignmentService.getAssignmentsBySubjectAndUser(subjectOpt.get(), userOpt.get());
+            User user = userOpt.get();
+            List<Assignment> assignments = assignmentService.getAssignmentsBySubjectAndUser(subjectOpt.get(), user);
+            
+            // For students, add submission status to each assignment
+            if ("STUDENT".equals(user.getRole())) {
+                List<Map<String, Object>> assignmentsWithStatus = assignments.stream()
+                    .map(assignment -> {
+                        Map<String, Object> assignmentMap = new HashMap<>();
+                        assignmentMap.put("activityId", assignment.getActivityId());
+                        assignmentMap.put("title", assignment.getTitle());
+                        assignmentMap.put("description", assignment.getDescription());
+                        assignmentMap.put("dueDate", assignment.getDueDate());
+                        assignmentMap.put("estimatedTime", assignment.getEstimatedTime());
+                        assignmentMap.put("difficulty", assignment.getDifficulty());
+                        assignmentMap.put("createdAt", assignment.getCreatedAt());
+                        assignmentMap.put("subject", assignment.getSubject());
+                        assignmentMap.put("user", assignment.getUser());
+                        
+                        // Check if student has submitted
+                        boolean hasSubmitted = submissionService.hasSubmitted(assignment, user);
+                        assignmentMap.put("completed", hasSubmitted);
+                        
+                        return assignmentMap;
+                    })
+                    .collect(Collectors.toList());
+                
+                return ResponseEntity.ok(assignmentsWithStatus);
+            }
+            
             return ResponseEntity.ok(assignments);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Error: " + e.getMessage());
+        }
+    }
+    
+    // Submit an assignment
+    @PostMapping("/{assignmentId}/submit")
+    public ResponseEntity<?> submitAssignment(@PathVariable Long assignmentId, @RequestBody Map<String, Object> payload) {
+        try {
+            Long studentId = Long.valueOf(payload.get("studentId").toString());
+            String submissionText = (String) payload.get("submissionText");
+            String fileNames = (String) payload.get("fileNames");
+            
+            Optional<Assignment> assignmentOpt = assignmentService.findById(assignmentId);
+            Optional<User> studentOpt = userService.findById(studentId);
+            
+            if (!assignmentOpt.isPresent()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("Assignment not found");
+            }
+            if (!studentOpt.isPresent()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("Student not found");
+            }
+            
+            AssignmentSubmission submission = submissionService.submitAssignment(
+                assignmentOpt.get(), 
+                studentOpt.get(), 
+                submissionText, 
+                fileNames
+            );
+            
+            return ResponseEntity.status(HttpStatus.CREATED).body(submission);
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body("Error: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Error: " + e.getMessage());
+        }
+    }
+    
+    // Unsubmit an assignment
+    @DeleteMapping("/{assignmentId}/unsubmit")
+    public ResponseEntity<?> unsubmitAssignment(@PathVariable Long assignmentId, @RequestParam Long studentId) {
+        try {
+            Optional<Assignment> assignmentOpt = assignmentService.findById(assignmentId);
+            Optional<User> studentOpt = userService.findById(studentId);
+            
+            if (!assignmentOpt.isPresent()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("Assignment not found");
+            }
+            if (!studentOpt.isPresent()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("Student not found");
+            }
+            
+            submissionService.unsubmitAssignment(assignmentOpt.get(), studentOpt.get());
+            
+            return ResponseEntity.ok("Assignment unsubmitted successfully");
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body("Error: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Error: " + e.getMessage());
+        }
+    }
+    
+    // Get submission for an assignment
+    @GetMapping("/{assignmentId}/submission")
+    public ResponseEntity<?> getSubmission(@PathVariable Long assignmentId, @RequestParam Long studentId) {
+        try {
+            Optional<Assignment> assignmentOpt = assignmentService.findById(assignmentId);
+            Optional<User> studentOpt = userService.findById(studentId);
+            
+            if (!assignmentOpt.isPresent()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("Assignment not found");
+            }
+            if (!studentOpt.isPresent()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("Student not found");
+            }
+            
+            Optional<AssignmentSubmission> submission = submissionService.getSubmission(
+                assignmentOpt.get(), 
+                studentOpt.get()
+            );
+            
+            if (submission.isPresent()) {
+                return ResponseEntity.ok(submission.get());
+            }
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body("No submission found");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Error: " + e.getMessage());
+        }
+    }
+    
+    // Get all submissions for an assignment (for teachers)
+    @GetMapping("/{assignmentId}/submissions")
+    public ResponseEntity<?> getAllSubmissions(@PathVariable Long assignmentId) {
+        try {
+            Optional<Assignment> assignmentOpt = assignmentService.findById(assignmentId);
+            
+            if (!assignmentOpt.isPresent()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("Assignment not found");
+            }
+            
+            List<AssignmentSubmission> submissions = submissionService.getSubmissionsByAssignment(assignmentOpt.get());
+            
+            return ResponseEntity.ok(submissions);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body("Error: " + e.getMessage());

@@ -1,36 +1,81 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../../components/Layout.jsx';
-import { assignmentAPI } from '../../services/api.js';
+import { assignmentAPI, subjectAPI, enrollmentAPI } from '../../services/api.js';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../../components/Select.jsx';
 import '../css/Assignments.css';
 
 function Assignments({ user, onLogout }) {
   const navigate = useNavigate();
   const [assignments, setAssignments] = useState([]);
+  const [subjects, setSubjects] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const [activeTab, setActiveTab] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [subjectFilter, setSubjectFilter] = useState('all');
   const [sortBy, setSortBy] = useState('dueDate');
+  
+  const isTeacher = user?.role === 'TEACHER';
+
+  console.log('Current subjectFilter:', subjectFilter);
 
   // Fetch assignments from backend
   useEffect(() => {
     if (user && user.id) {
       fetchAssignments();
+      if (user.role === 'TEACHER') {
+        fetchTeacherSubjects();
+      } else if (user.role === 'STUDENT') {
+        fetchStudentSubjects();
+      }
     }
   }, [user]);
+
+  const fetchStudentSubjects = async () => {
+    try {
+      console.log('Fetching enrolled subjects for student:', user.id);
+      const response = await enrollmentAPI.getEnrollments(user.id);
+      console.log('Student enrollments response:', response.data);
+      // Backend wraps data in { success: true, data: [...] }
+      const enrollmentsData = response.data.data || response.data;
+      console.log('Extracted enrollments:', enrollmentsData);
+      // Extract subjects from enrollments
+      const enrolledSubjects = enrollmentsData.map(enrollment => enrollment.subject);
+      console.log('Enrolled subjects:', enrolledSubjects);
+      setSubjects(Array.isArray(enrolledSubjects) ? enrolledSubjects : []);
+    } catch (error) {
+      console.error('Error fetching student subjects:', error);
+    }
+  };
+
+  const fetchTeacherSubjects = async () => {
+    try {
+      console.log('Fetching subjects for teacher:', user.id);
+      const response = await subjectAPI.getByTeacher(user.id);
+      console.log('Teacher subjects response:', response.data);
+      // Backend wraps data in { success: true, data: [...] }
+      const subjectsData = response.data.data || response.data;
+      console.log('Extracted subjects:', subjectsData);
+      setSubjects(Array.isArray(subjectsData) ? subjectsData : []);
+    } catch (error) {
+      console.error('Error fetching subjects:', error);
+    }
+  };
 
   const fetchAssignments = async () => {
     setLoading(true);
     try {
       const response = await assignmentAPI.getByUser(user.id);
+      console.log('Raw assignments response:', response.data);
       const assignmentsData = response.data.map(a => ({
         ...a,
         subject: a.subject ? a.subject.subjectCode : 'N/A',
+        subjectId: a.subject ? a.subject.subjectId : null,
         completed: a.completed || false
       }));
+      console.log('Processed assignments:', assignmentsData);
+      console.log('Assignment difficulties:', assignmentsData.map(a => `${a.title}: "${a.difficulty}"`));
       setAssignments(assignmentsData);
     } catch (error) {
       console.error('Error fetching assignments:', error);
@@ -45,18 +90,20 @@ function Assignments({ user, onLogout }) {
   const weekFromNow = new Date(today);
   weekFromNow.setDate(weekFromNow.getDate() + 7);
 
-  const overdueCount = assignments.filter(a => new Date(a.dueDate) < today).length;
+  const overdueCount = assignments.filter(a => !a.completed && new Date(a.dueDate) < today).length;
   const todayCount = assignments.filter(a => {
+    if (a.completed) return false;
     const d = new Date(a.dueDate);
     d.setHours(0, 0, 0, 0);
     return d.getTime() === today.getTime();
   }).length;
   const weekCount = assignments.filter(a => {
+    if (a.completed) return false;
     const d = new Date(a.dueDate);
     d.setHours(0, 0, 0, 0);
     return d >= today && d <= weekFromNow;
   }).length;
-  const upcomingCount = assignments.filter(a => new Date(a.dueDate) > weekFromNow).length;
+  const upcomingCount = assignments.filter(a => !a.completed && new Date(a.dueDate) > weekFromNow).length;
   const completedCount = assignments.filter(a => a.completed).length;
 
   // Filter assignments
@@ -66,24 +113,37 @@ function Assignments({ user, onLogout }) {
       return false;
     }
 
-    // Subject filter
-    if (subjectFilter !== 'all' && assignment.subject !== subjectFilter) {
-      return false;
+    // Subject filter - for teachers, filter by subjectId; for students, by subject code
+    if (subjectFilter !== 'all') {
+      if (isTeacher) {
+        // For teachers: subjectFilter is subjectId (number)
+        if (assignment.subjectId !== parseInt(subjectFilter)) {
+          return false;
+        }
+      } else {
+        // For students: subjectFilter is subject code (string)
+        console.log('Filtering:', assignment.subject, '===', subjectFilter, '?', assignment.subject === subjectFilter);
+        if (assignment.subject !== subjectFilter) {
+          return false;
+        }
+      }
     }
 
-    // Tab filter
-    const dueDate = new Date(assignment.dueDate);
-    dueDate.setHours(0, 0, 0, 0);
+    // Tab filter (only for students)
+    if (!isTeacher) {
+      const dueDate = new Date(assignment.dueDate);
+      dueDate.setHours(0, 0, 0, 0);
 
-    if (activeTab === 'completed') return assignment.completed;
-    
-    // Don't show completed assignments in other tabs
-    if (assignment.completed && activeTab !== 'completed') return false;
-    
-    if (activeTab === 'overdue' && dueDate >= today) return false;
-    if (activeTab === 'today' && dueDate.getTime() !== today.getTime()) return false;
-    if (activeTab === 'week' && (dueDate < today || dueDate > weekFromNow)) return false;
-    if (activeTab === 'upcoming' && dueDate <= weekFromNow) return false;
+      if (activeTab === 'completed') return assignment.completed;
+      
+      // Don't show completed assignments in other tabs
+      if (assignment.completed && activeTab !== 'completed') return false;
+      
+      if (activeTab === 'overdue' && dueDate >= today) return false;
+      if (activeTab === 'today' && dueDate.getTime() !== today.getTime()) return false;
+      if (activeTab === 'week' && (dueDate < today || dueDate > weekFromNow)) return false;
+      if (activeTab === 'upcoming' && dueDate <= weekFromNow) return false;
+    }
 
     return true;
   });
@@ -93,11 +153,17 @@ function Assignments({ user, onLogout }) {
     if (sortBy === 'dueDate') {
       return new Date(a.dueDate) - new Date(b.dueDate);
     } else if (sortBy === 'difficulty') {
-      const difficultyOrder = { 'Hard': 3, 'Medium': 2, 'Easy': 1 };
-      return difficultyOrder[b.difficulty] - difficultyOrder[a.difficulty];
+      const difficultyOrder = { 'HARD': 3, 'MEDIUM': 2, 'EASY': 1 };
+      const aOrder = difficultyOrder[a.difficulty] || 0;
+      const bOrder = difficultyOrder[b.difficulty] || 0;
+      console.log(`Comparing ${a.title} (${a.difficulty}=${aOrder}) vs ${b.title} (${b.difficulty}=${bOrder})`);
+      return bOrder - aOrder;
     }
     return 0;
   });
+
+  console.log('Current sortBy:', sortBy);
+  console.log('Sorted assignments:', sortedAssignments.map(a => `${a.title} - ${a.difficulty}`));
 
   const isOverdue = (dueDate) => {
     return new Date(dueDate) < today;
@@ -108,10 +174,38 @@ function Assignments({ user, onLogout }) {
     return date.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' });
   };
 
+  const handleCreateAssignment = () => {
+    navigate('/assignments/create');
+  };
+
+  const handleDeleteAssignment = async (assignmentId, e) => {
+    e.stopPropagation();
+    if (window.confirm('Are you sure you want to delete this assignment? All student submissions will also be deleted.')) {
+      try {
+        await assignmentAPI.delete(assignmentId);
+        fetchAssignments();
+      } catch (error) {
+        console.error('Error deleting assignment:', error);
+        alert('Failed to delete assignment');
+      }
+    }
+  };
+
   return (
     <Layout user={user} onLogout={onLogout} activePage="assignments">
       <div className="assignments-container">
-        <h1 className="page-title">Assignments</h1>
+        <div className="assignments-header-row">
+          <h1 className="page-title">Assignments</h1>
+          {isTeacher && (
+            <button className="btn-create-assignment" onClick={handleCreateAssignment}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+              Create Assignment
+            </button>
+          )}
+        </div>
         
         <div className="assignments-controls">
           <div className="search-box">
@@ -129,33 +223,58 @@ function Assignments({ user, onLogout }) {
           </div>
           
           <div className="filters">
-            <Select value={subjectFilter} onValueChange={setSubjectFilter}>
+            <Select value={subjectFilter} onValueChange={(val) => {
+              console.log('onValueChange called with:', val);
+              setSubjectFilter(val);
+            }}>
               <SelectTrigger className="filter-select-custom">
                 <SelectValue placeholder="All Subjects">
-                  {subjectFilter === 'all' ? 'All Subjects' : subjectFilter}
+                  {subjectFilter === 'all' 
+                    ? 'All Subjects' 
+                    : isTeacher 
+                      ? subjects.find(s => s.subjectId === parseInt(subjectFilter))?.subjectCode || subjectFilter
+                      : subjectFilter
+                  }
                 </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Subjects</SelectItem>
-                <SelectItem value="RIZAL031">RIZAL031</SelectItem>
-                <SelectItem value="IT365">IT365</SelectItem>
-                <SelectItem value="ES038">ES038</SelectItem>
-                <SelectItem value="CSIT327">CSIT327</SelectItem>
-                <SelectItem value="IT317">IT317</SelectItem>
-                <SelectItem value="CSIT340">CSIT340</SelectItem>
-                <SelectItem value="CSIT321">CSIT321</SelectItem>
+                {isTeacher ? (
+                  Array.isArray(subjects) && subjects.length > 0 ? (
+                    subjects.map(subject => (
+                      <SelectItem key={subject.subjectId} value={subject.subjectId.toString()}>
+                        {subject.subjectCode}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="no-subjects" disabled>No subjects found</SelectItem>
+                  )
+                ) : (
+                  Array.isArray(subjects) && subjects.length > 0 ? (
+                    subjects.map(subject => (
+                      <SelectItem key={subject.subjectId} value={subject.subjectCode}>
+                        {subject.subjectCode}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="no-subjects" disabled>Not enrolled in any subjects</SelectItem>
+                  )
+                )}
               </SelectContent>
             </Select>
             
-            <Select value={sortBy} onValueChange={setSortBy}>
+            <Select value={sortBy} onValueChange={(val) => {
+              console.log('Sort onValueChange called with:', val);
+              setSortBy(val);
+            }}>
               <SelectTrigger className="filter-select-custom">
                 <SelectValue placeholder="Due Date">
                   {sortBy === 'dueDate' ? 'Due Date' : 'Difficulty'}
                 </SelectValue>
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="dueDate">Due Date</SelectItem>
-                <SelectItem value="difficulty">Difficulty</SelectItem>
+                <SelectItem key="dueDate" value="dueDate">Due Date</SelectItem>
+                <SelectItem key="difficulty" value="difficulty">Difficulty</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -166,51 +285,55 @@ function Assignments({ user, onLogout }) {
             className={`tab ${activeTab === 'all' ? 'active' : ''}`}
             onClick={() => setActiveTab('all')}
           >
-            All ({assignments.length})
+            All ({assignments.filter(a => !a.completed).length})
           </button>
-          <button 
-            className={`tab ${activeTab === 'overdue' ? 'active' : ''}`}
-            onClick={() => setActiveTab('overdue')}
-          >
-            Overdue ({overdueCount})
-          </button>
-          <button 
-            className={`tab ${activeTab === 'today' ? 'active' : ''}`}
-            onClick={() => setActiveTab('today')}
-          >
-            Due Today ({todayCount})
-          </button>
-          <button 
-            className={`tab ${activeTab === 'week' ? 'active' : ''}`}
-            onClick={() => setActiveTab('week')}
-          >
-            This Week ({weekCount})
-          </button>
-          <button 
-            className={`tab ${activeTab === 'upcoming' ? 'active' : ''}`}
-            onClick={() => setActiveTab('upcoming')}
-          >
-            Upcoming ({upcomingCount})
-          </button>
-          <button 
-            className={`tab ${activeTab === 'completed' ? 'active' : ''}`}
-            onClick={() => setActiveTab('completed')}
-          >
-            Completed ({completedCount})
-          </button>
+          {!isTeacher && (
+            <>
+              <button 
+                className={`tab ${activeTab === 'overdue' ? 'active' : ''}`}
+                onClick={() => setActiveTab('overdue')}
+              >
+                Overdue ({overdueCount})
+              </button>
+              <button 
+                className={`tab ${activeTab === 'today' ? 'active' : ''}`}
+                onClick={() => setActiveTab('today')}
+              >
+                Due Today ({todayCount})
+              </button>
+              <button 
+                className={`tab ${activeTab === 'week' ? 'active' : ''}`}
+                onClick={() => setActiveTab('week')}
+              >
+                This Week ({weekCount})
+              </button>
+              <button 
+                className={`tab ${activeTab === 'upcoming' ? 'active' : ''}`}
+                onClick={() => setActiveTab('upcoming')}
+              >
+                Upcoming ({upcomingCount})
+              </button>
+              <button 
+                className={`tab ${activeTab === 'completed' ? 'active' : ''}`}
+                onClick={() => setActiveTab('completed')}
+              >
+                Completed ({completedCount})
+              </button>
+            </>
+          )}
         </div>
 
         <div className="assignments-list">
           {sortedAssignments.map((assignment) => (
             <div 
               key={assignment.activityId} 
-              className={`assignment-card ${isOverdue(assignment.dueDate) ? 'overdue' : ''}`}
+              className={`assignment-card ${isOverdue(assignment.dueDate) && !isTeacher ? 'overdue' : ''}`}
               onClick={() => navigate(`/assignments/${assignment.activityId}`)}
               style={{ cursor: 'pointer' }}
             >
               <div className="assignment-header">
                 <div className="assignment-title-section">
-                  {isOverdue(assignment.dueDate) && (
+                  {isOverdue(assignment.dueDate) && !isTeacher && (
                     <svg className="alert-icon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                       <path d="M12 2L2 22h20L12 2zm0 4.5l7 13H5l7-13z"></path>
                       <path d="M11 11h2v5h-2z"></path>
@@ -222,9 +345,23 @@ function Assignments({ user, onLogout }) {
                     <p className="assignment-description">{assignment.description}</p>
                   </div>
                 </div>
-                <span className={`difficulty-badge difficulty-${assignment.difficulty.toLowerCase()}`}>
-                  {assignment.difficulty}
-                </span>
+                <div className="assignment-actions-section">
+                  <span className={`difficulty-badge difficulty-${assignment.difficulty.toLowerCase()}`}>
+                    {assignment.difficulty}
+                  </span>
+                  {isTeacher && (
+                    <button 
+                      className="btn-delete-assignment"
+                      onClick={(e) => handleDeleteAssignment(assignment.activityId, e)}
+                      title="Delete Assignment"
+                    >
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                      </svg>
+                    </button>
+                  )}
+                </div>
               </div>
               
               <div className="assignment-meta">

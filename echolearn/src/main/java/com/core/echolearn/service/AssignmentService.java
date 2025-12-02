@@ -13,12 +13,17 @@ import com.core.echolearn.entity.Assignment;
 import com.core.echolearn.entity.User;
 import com.core.echolearn.entity.Subject;
 import com.core.echolearn.repository.AssignmentRepository;
+import com.core.echolearn.repository.AssignmentSubmissionRepository;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class AssignmentService {
     
     @Autowired
     private AssignmentRepository assignmentRepository;
+    
+    @Autowired
+    private AssignmentSubmissionRepository submissionRepository;
     
     public Assignment createAssignment(Assignment assignment) {
         return assignmentRepository.save(assignment);
@@ -33,7 +38,13 @@ public class AssignmentService {
     }
     
     public List<Assignment> getAssignmentsByUser(User user) {
-        return assignmentRepository.findByUserOrderByDueDateAsc(user);
+        // For students: get all assignments from enrolled subjects (including teacher-created)
+        // For teachers: get assignments from subjects they teach
+        if ("STUDENT".equals(user.getRole())) {
+            return assignmentRepository.findAllForStudent(user);
+        } else {
+            return assignmentRepository.findAllForTeacher(user.getId());
+        }
     }
     
     public List<Assignment> getAssignmentsBySubject(Subject subject) {
@@ -75,7 +86,14 @@ public class AssignmentService {
         return assignmentRepository.save(assignment);
     }
     
+    @Transactional
     public void deleteAssignment(Long id) {
+        // First, delete all submissions for this assignment
+        Optional<Assignment> assignmentOpt = assignmentRepository.findById(id);
+        if (assignmentOpt.isPresent()) {
+            submissionRepository.deleteByAssignment(assignmentOpt.get());
+        }
+        // Then delete the assignment
         assignmentRepository.deleteById(id);
     }
 

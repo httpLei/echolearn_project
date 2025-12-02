@@ -35,6 +35,10 @@ public class ConversationService {
         return conversationRepository.findById(conversationId);
     }
     
+    public Optional<Conversation> findById(Long conversationId) {
+        return conversationRepository.findById(conversationId);
+    }
+    
     @Transactional
     public Conversation getOrCreateConversation(User user1, User user2) {
         Optional<Conversation> existingConversation = conversationRepository.findByUsers(user1, user2);
