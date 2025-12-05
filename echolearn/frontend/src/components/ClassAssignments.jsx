@@ -9,12 +9,14 @@ function ClassAssignments({ user, subjectId, subjectCode }) {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [showCreateModal, setShowCreateModal] = useState(false);
+    const [selectedFiles, setSelectedFiles] = useState([]);
     const [newAssignment, setNewAssignment] = useState({
         title: '',
         description: '',
         dueDate: '',
         estimatedTime: 60,
-        difficulty: 'MEDIUM'
+        difficulty: 'MEDIUM',
+        allowLateSubmission: true
     });
 
     useEffect(() => {
@@ -44,22 +46,33 @@ function ClassAssignments({ user, subjectId, subjectCode }) {
     const handleCreateAssignment = async (e) => {
         e.preventDefault();
         try {
+            let uploadedFileNames = '';
+            
+            // Upload files first if any selected
+            if (selectedFiles.length > 0) {
+                const uploadResponse = await assignmentAPI.uploadFiles(selectedFiles);
+                uploadedFileNames = uploadResponse.data.fileNames;
+            }
+            
             const assignmentData = {
                 ...newAssignment,
                 subject: { subjectId: parseInt(subjectId) },
                 user: null, // Teacher-created assignments are for all students
-                completed: false
+                completed: false,
+                fileNames: uploadedFileNames || null
             };
             
             await assignmentAPI.create(assignmentData);
             
             setShowCreateModal(false);
+            setSelectedFiles([]);
             setNewAssignment({
                 title: '',
                 description: '',
                 dueDate: '',
                 estimatedTime: 60,
-                difficulty: 'MEDIUM'
+                difficulty: 'MEDIUM',
+                allowLateSubmission: true
             });
             
             fetchAssignments();
@@ -67,6 +80,15 @@ function ClassAssignments({ user, subjectId, subjectCode }) {
             console.error('Error creating assignment:', err);
             alert('Failed to create assignment');
         }
+    };
+
+    const handleFileSelect = (e) => {
+        const files = Array.from(e.target.files);
+        setSelectedFiles([...selectedFiles, ...files]);
+    };
+
+    const handleRemoveFile = (index) => {
+        setSelectedFiles(selectedFiles.filter((_, i) => i !== index));
     };
 
     const handleMarkComplete = async (assignmentId) => {
@@ -277,6 +299,57 @@ function ClassAssignments({ user, subjectId, subjectCode }) {
                                     <option value="MEDIUM">Medium</option>
                                     <option value="HARD">Hard</option>
                                 </select>
+                            </div>
+                            
+                            <div className="form-group">
+                                <label>Late Submission</label>
+                                <div className="checkbox-group">
+                                    <label className="checkbox-label">
+                                        <input
+                                            type="checkbox"
+                                            checked={newAssignment.allowLateSubmission}
+                                            onChange={(e) => setNewAssignment({ ...newAssignment, allowLateSubmission: e.target.checked })}
+                                        />
+                                        <span>Allow students to submit after due date</span>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div className="form-group">
+                                <label>Attach Files (Optional)</label>
+                                <div className="file-upload-area">
+                                    <input
+                                        type="file"
+                                        id="modal-file-upload"
+                                        multiple
+                                        onChange={handleFileSelect}
+                                        style={{ display: 'none' }}
+                                    />
+                                    <label htmlFor="modal-file-upload" className="file-upload-label">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                            <polyline points="17 8 12 3 7 8"></polyline>
+                                            <line x1="12" y1="3" x2="12" y2="15"></line>
+                                        </svg>
+                                        Choose Files
+                                    </label>
+                                    {selectedFiles.length > 0 && (
+                                        <div className="selected-files-list">
+                                            {selectedFiles.map((file, index) => (
+                                                <div key={index} className="file-item">
+                                                    <span className="file-name">{file.name}</span>
+                                                    <button
+                                                        type="button"
+                                                        className="btn-remove-file"
+                                                        onClick={() => handleRemoveFile(index)}
+                                                    >
+                                                        ×
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                             
                             <div className="form-actions">

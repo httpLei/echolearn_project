@@ -11,6 +11,8 @@ function AssignmentDetail({ user, onLogout }) {
   const [assignment, setAssignment] = useState(null);
   const [originalAssignment, setOriginalAssignment] = useState(null);
   const [selectedFiles, setSelectedFiles] = useState([]);
+  const [editFiles, setEditFiles] = useState([]);
+  const [editFileObjects, setEditFileObjects] = useState([]);
   const [submissionText, setSubmissionText] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submission, setSubmission] = useState(null);
@@ -21,7 +23,8 @@ function AssignmentDetail({ user, onLogout }) {
     description: '',
     dueDate: '',
     estimatedTime: '',
-    difficulty: 'MEDIUM'
+    difficulty: 'MEDIUM',
+    allowLateSubmission: true
   });
 
   useEffect(() => {
@@ -38,15 +41,19 @@ function AssignmentDetail({ user, onLogout }) {
       // Store original assignment data (with Subject object intact)
       setOriginalAssignment(assignmentData);
       
+      console.log('Assignment fileNames:', assignmentData.fileNames);
+      
       // Format the assignment data for display
       const formattedAssignment = {
         ...assignmentData,
         subject: assignmentData.subject?.subjectCode || 'N/A',
         professor: assignmentData.subject?.teacher?.username || assignmentData.subject?.teacher?.name || 'Unknown',
         points: 100, // Default points, you can add this to backend
-        allowLateSubmission: true, // Default, you can add this to backend
-        attachments: [] // You can add file attachments to backend
+        allowLateSubmission: assignmentData.allowLateSubmission !== null ? assignmentData.allowLateSubmission : true,
+        attachments: assignmentData.fileNames ? assignmentData.fileNames.split(',').filter(f => f.trim()) : []
       };
+      
+      console.log('Formatted attachments:', formattedAssignment.attachments);
       
       setAssignment(formattedAssignment);
       
@@ -56,8 +63,15 @@ function AssignmentDetail({ user, onLogout }) {
         description: assignmentData.description || '',
         dueDate: assignmentData.dueDate || '',
         estimatedTime: assignmentData.estimatedTime || '',
-        difficulty: assignmentData.difficulty || 'MEDIUM'
+        difficulty: assignmentData.difficulty || 'MEDIUM',
+        allowLateSubmission: assignmentData.allowLateSubmission !== null ? assignmentData.allowLateSubmission : true
       });
+      
+      // Initialize edit files with existing attachments
+      if (assignmentData.fileNames) {
+        const existingFiles = assignmentData.fileNames.split(',').filter(f => f.trim());
+        setEditFiles(existingFiles);
+      }
       
       // If teacher, fetch all submissions
       if (user.role === 'TEACHER') {
@@ -155,28 +169,56 @@ function AssignmentDetail({ user, onLogout }) {
       alert('Failed to unsubmit assignment. Please try again.');
     }
   };
-  
   const handleUpdateAssignment = async () => {
     try {
+      let uploadedFileNames = '';
+      
+      // Upload new files first if any
+      if (editFileObjects.length > 0) {
+        const uploadResponse = await assignmentAPI.uploadFiles(editFileObjects);
+        uploadedFileNames = uploadResponse.data.fileNames;
+      }
+      
+      // Combine existing files and new uploaded files
+      const allFileNames = [...editFiles, ...(uploadedFileNames ? uploadedFileNames.split(',') : [])].join(',');
+      
       const updatedAssignment = {
         ...originalAssignment,
         title: editForm.title,
         description: editForm.description,
         dueDate: editForm.dueDate,
         estimatedTime: parseInt(editForm.estimatedTime),
-        difficulty: editForm.difficulty
+        difficulty: editForm.difficulty,
+        fileNames: allFileNames || null,
+        allowLateSubmission: editForm.allowLateSubmission
       };
       
       await assignmentAPI.update(id, updatedAssignment);
       
       alert('Assignment updated successfully!');
       setIsEditMode(false);
+      setEditFileObjects([]);
       
       // Refresh assignment data
       await fetchAssignment();
     } catch (error) {
       console.error('Error updating assignment:', error);
       alert('Failed to update assignment. Please try again.');
+    }
+  };
+
+  const handleEditFileSelect = (e) => {
+    const files = Array.from(e.target.files);
+    setEditFileObjects([...editFileObjects, ...files]);
+  };
+
+  const handleRemoveEditFile = (index) => {
+    const isExistingFile = index < editFiles.length;
+    if (isExistingFile) {
+      setEditFiles(editFiles.filter((_, i) => i !== index));
+    } else {
+      const newFileIndex = index - editFiles.length;
+      setEditFileObjects(editFileObjects.filter((_, i) => i !== newFileIndex));
     }
   };
 
@@ -293,13 +335,6 @@ function AssignmentDetail({ user, onLogout }) {
               <p className="description-text">{assignment.description}</p>
             </div>
 
-            <div className="section-card">
-              <h2 className="section-title">Instructions</h2>
-              <div className="instructions-text">
-                {assignment.description}
-              </div>
-            </div>
-
             {assignment.attachments && assignment.attachments.length > 0 && (
               <div className="section-card">
                 <h2 className="section-title">
@@ -309,21 +344,23 @@ function AssignmentDetail({ user, onLogout }) {
                   Attachments
                 </h2>
                 <div className="attachments-list">
-                  {assignment.attachments.map((file, index) => (
-                    <a key={index} href={file.url} className="attachment-item" download>
+                  {assignment.attachments.map((fileName, index) => (
+                    <a 
+                      key={index} 
+                      href={assignmentAPI.downloadFile(fileName)} 
+                      download
+                      className="attachment-item"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
                       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                         <polyline points="14 2 14 8 20 8"></polyline>
                       </svg>
                       <div className="attachment-info">
-                        <div className="attachment-name">{file.name}</div>
-                        <div className="attachment-size">{file.size}</div>
+                        <div className="attachment-name">{fileName}</div>
+                        <div className="attachment-action">Click to download</div>
                       </div>
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                        <polyline points="7 10 12 15 17 10"></polyline>
-                        <line x1="12" y1="15" x2="12" y2="3"></line>
-                      </svg>
                     </a>
                   ))}
                 </div>
@@ -621,6 +658,69 @@ function AssignmentDetail({ user, onLogout }) {
                     <option value="MEDIUM">Medium</option>
                     <option value="HARD">Hard</option>
                   </select>
+                </div>
+                
+                <div className="form-group">
+                  <label>Late Submission</label>
+                  <div className="checkbox-group">
+                    <label className="checkbox-label">
+                      <input
+                        type="checkbox"
+                        checked={editForm.allowLateSubmission}
+                        onChange={(e) => setEditForm({...editForm, allowLateSubmission: e.target.checked})}
+                      />
+                      <span>Allow students to submit after due date</span>
+                    </label>
+                  </div>
+                </div>
+                
+                <div className="form-group">
+                  <label>Attach Files (Optional)</label>
+                  <div className="file-upload-area">
+                    <input
+                      type="file"
+                      id="edit-file-upload"
+                      multiple
+                      onChange={handleEditFileSelect}
+                      style={{ display: 'none' }}
+                    />
+                    <label htmlFor="edit-file-upload" className="file-upload-label">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                      </svg>
+                      Add Files
+                    </label>
+                    {(editFiles.length > 0 || editFileObjects.length > 0) && (
+                      <div className="selected-files-list">
+                        {editFiles.map((fileName, index) => (
+                          <div key={`existing-${index}`} className="file-item">
+                            <span className="file-name">{fileName}</span>
+                            <button
+                              type="button"
+                              className="btn-remove-file"
+                              onClick={() => handleRemoveEditFile(index)}
+                            >
+                              ×
+                            </button>
+                          </div>
+                        ))}
+                        {editFileObjects.map((file, index) => (
+                          <div key={`new-${index}`} className="file-item">
+                            <span className="file-name">{file.name} (new)</span>
+                            <button
+                              type="button"
+                              className="btn-remove-file"
+                              onClick={() => handleRemoveEditFile(editFiles.length + index)}
+                            >
+                              ×
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
               

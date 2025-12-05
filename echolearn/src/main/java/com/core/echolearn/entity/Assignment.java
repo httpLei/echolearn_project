@@ -33,6 +33,12 @@ public class Assignment {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
     
+    @Column(name = "file_names", length = 2000)
+    private String fileNames; // Comma-separated file names attached by teacher
+    
+    @Column(name = "allow_late_submission")
+    private Boolean allowLateSubmission;
+    
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = true)
     private User user;
@@ -143,5 +149,21 @@ public class Assignment {
     
     public void setUser(User user) {
         this.user = user;
+    }
+    
+    public String getFileNames() {
+        return fileNames;
+    }
+    
+    public void setFileNames(String fileNames) {
+        this.fileNames = fileNames;
+    }
+    
+    public Boolean getAllowLateSubmission() {
+        return allowLateSubmission;
+    }
+    
+    public void setAllowLateSubmission(Boolean allowLateSubmission) {
+        this.allowLateSubmission = allowLateSubmission;
     }
 }

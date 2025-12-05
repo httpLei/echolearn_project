@@ -8,13 +8,15 @@ function CreateAssignment({ user, onLogout }) {
   const navigate = useNavigate();
   const [subjects, setSubjects] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState([]);
   const [newAssignment, setNewAssignment] = useState({
     title: '',
     description: '',
     dueDate: '',
     estimatedTime: 60,
     difficulty: 'MEDIUM',
-    subjectId: ''
+    subjectId: '',
+    allowLateSubmission: true
   });
 
   useEffect(() => {
@@ -38,6 +40,14 @@ function CreateAssignment({ user, onLogout }) {
     setLoading(true);
     
     try {
+      let uploadedFileNames = '';
+      
+      // Upload files first if any selected
+      if (selectedFiles.length > 0) {
+        const uploadResponse = await assignmentAPI.uploadFiles(selectedFiles);
+        uploadedFileNames = uploadResponse.data.fileNames;
+      }
+      
       const assignmentData = {
         title: newAssignment.title,
         description: newAssignment.description,
@@ -46,7 +56,9 @@ function CreateAssignment({ user, onLogout }) {
         difficulty: newAssignment.difficulty,
         subject: { subjectId: parseInt(newAssignment.subjectId) },
         user: null, // Teacher-created assignments are for all students
-        completed: false
+        completed: false,
+        fileNames: uploadedFileNames || null,
+        allowLateSubmission: newAssignment.allowLateSubmission
       };
       
       await assignmentAPI.create(assignmentData);
@@ -58,6 +70,15 @@ function CreateAssignment({ user, onLogout }) {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleFileSelect = (e) => {
+    const files = Array.from(e.target.files);
+    setSelectedFiles([...selectedFiles, ...files]);
+  };
+
+  const handleRemoveFile = (index) => {
+    setSelectedFiles(selectedFiles.filter((_, i) => i !== index));
   };
 
   const handleCancel = () => {
@@ -150,6 +171,57 @@ function CreateAssignment({ user, onLogout }) {
                   <option value="MEDIUM">Medium</option>
                   <option value="HARD">Hard</option>
                 </select>
+              </div>
+            </div>
+            
+            <div className="form-group">
+              <label>Late Submission</label>
+              <div className="checkbox-group">
+                <label className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    checked={newAssignment.allowLateSubmission}
+                    onChange={(e) => setNewAssignment({ ...newAssignment, allowLateSubmission: e.target.checked })}
+                  />
+                  <span>Allow students to submit after due date</span>
+                </label>
+              </div>
+            </div>
+            
+            <div className="form-group">
+              <label>Attach Files (Optional)</label>
+              <div className="file-upload-area">
+                <input
+                  type="file"
+                  id="file-upload"
+                  multiple
+                  onChange={handleFileSelect}
+                  style={{ display: 'none' }}
+                />
+                <label htmlFor="file-upload" className="file-upload-label">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="17 8 12 3 7 8"></polyline>
+                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                  </svg>
+                  Choose Files
+                </label>
+                {selectedFiles.length > 0 && (
+                  <div className="selected-files-list">
+                    {selectedFiles.map((file, index) => (
+                      <div key={index} className="file-item">
+                        <span className="file-name">{file.name}</span>
+                        <button
+                          type="button"
+                          className="btn-remove-file"
+                          onClick={() => handleRemoveFile(index)}
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
             
