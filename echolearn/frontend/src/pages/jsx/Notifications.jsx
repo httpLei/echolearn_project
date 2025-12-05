@@ -14,13 +14,20 @@ function Notifications({ user, onLogout }) {
   const unreadCount = notifications.filter(n => !n.isRead).length;
   const totalCount = notifications.length;
 
-  // Fetch notifications from backend
+  // Fetch notifications from backend with filter
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
         setLoading(true);
-        const response = await notificationAPI.getByUser(user.id);
-        setNotifications(response.data);
+        let response;
+        // Use backend filtering
+        if (filter === 'Unread') {
+          response = await notificationAPI.getUnread(user.id);
+          setNotifications(response.data.notifications || []);
+        } else {
+          response = await notificationAPI.getByUser(user.id);
+          setNotifications(response.data);
+        }
       } catch (error) {
         console.error('Error fetching notifications:', error);
       } finally {
@@ -31,7 +38,7 @@ function Notifications({ user, onLogout }) {
     if (user?.id) {
       fetchNotifications();
     }
-  }, [user]);
+  }, [user, filter]); // Re-fetch when filter changes
 
   // Close menu when clicking outside
   useEffect(() => {
@@ -129,10 +136,8 @@ function Notifications({ user, onLogout }) {
     });
   };
 
-  const filteredNotifications = notifications.filter(n => {
-    if (filter === 'Unread') return !n.isRead;
-    return true;
-  });
+  // No filtering needed - backend handles it
+  const filteredNotifications = notifications;
 
   return (
     <Layout user={user} onLogout={onLogout} activePage="notifications">

@@ -17,7 +17,17 @@ export const authAPI = {
 
 // Assignment API
 export const assignmentAPI = {
-  getByUser: (userId) => api.get(`/assignments/user/${userId}`),
+  getByUser: (userId, params = {}) => {
+    const queryParams = new URLSearchParams();
+    if (params.search) queryParams.append('search', params.search);
+    if (params.subjectId) queryParams.append('subjectId', params.subjectId);
+    if (params.subjectCode) queryParams.append('subjectCode', params.subjectCode);
+    if (params.status) queryParams.append('status', params.status);
+    if (params.sortBy) queryParams.append('sortBy', params.sortBy);
+    
+    const queryString = queryParams.toString();
+    return api.get(`/assignments/user/${userId}${queryString ? `?${queryString}` : ''}`);
+  },
   getById: (id) => api.get(`/assignments/${id}`),
   getBySubject: (subjectId) => api.get(`/assignments/subject/${subjectId}`),
   getBySubjectAndUser: (subjectId, userId) => api.get(`/assignments/subject/${subjectId}/user/${userId}`),
@@ -29,6 +39,14 @@ export const assignmentAPI = {
   unsubmit: (assignmentId, studentId) => api.delete(`/assignments/${assignmentId}/unsubmit?studentId=${studentId}`),
   getSubmission: (assignmentId, studentId) => api.get(`/assignments/${assignmentId}/submission?studentId=${studentId}`),
   getAllSubmissions: (assignmentId) => api.get(`/assignments/${assignmentId}/submissions`),
+  uploadFiles: (files) => {
+    const formData = new FormData();
+    files.forEach(file => formData.append('files', file));
+    return axios.post(`${API_BASE_URL}/assignments/upload-files`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+  },
+  downloadFile: (fileName) => `${API_BASE_URL}/assignments/download/${fileName}`,
 };
 
 // Notification API

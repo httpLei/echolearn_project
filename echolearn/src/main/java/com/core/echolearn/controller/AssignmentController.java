@@ -11,16 +11,24 @@ import com.core.echolearn.service.AssignmentSubmissionService;
 import com.core.echolearn.service.UserService;
 import com.core.echolearn.service.SubjectService;
 import com.core.echolearn.service.NotificationService;
+import com.core.echolearn.service.FileStorageService;
 import com.core.echolearn.repository.EnrollmentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Optional;
+import java.util.ArrayList;
 import java.util.stream.Collectors;
 
 @RestController
@@ -46,8 +54,17 @@ public class AssignmentController {
     @Autowired
     private EnrollmentRepository enrollmentRepository;
     
+    @Autowired
+    private FileStorageService fileStorageService;
+    
     @GetMapping("/user/{userId}")
-    public ResponseEntity<?> getAssignmentsByUser(@PathVariable Long userId) { //get all the assignements of a user
+    public ResponseEntity<?> getAssignmentsByUser(
+            @PathVariable Long userId,
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) Long subjectId,
+            @RequestParam(required = false) String subjectCode,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String sortBy) {
         try {
             Optional<User> userOpt = userService.findById(userId);
             if (!userOpt.isPresent()) {
@@ -57,6 +74,81 @@ public class AssignmentController {
             
             User user = userOpt.get();
             List<Assignment> assignments = assignmentService.getAssignmentsByUser(user);
+            
+            // Apply filtering in backend
+            java.time.LocalDate today = java.time.LocalDate.now();
+            java.time.LocalDate weekFromNow = today.plusDays(7);
+            
+            assignments = assignments.stream()
+                .filter(assignment -> {
+                    // Search filter
+                    if (search != null && !search.isEmpty()) {
+                        if (!assignment.getTitle().toLowerCase().contains(search.toLowerCase())) {
+                            return false;
+                        }
+                    }
+                    
+                    // Subject filter - by ID for teachers, by code for students
+                    if (subjectId != null) {
+                        if (assignment.getSubject() == null || 
+                            !assignment.getSubject().getSubjectId().equals(subjectId)) {
+                            return false;
+                        }
+                    }
+                    if (subjectCode != null && !subjectCode.isEmpty()) {
+                        if (assignment.getSubject() == null || 
+                            !assignment.getSubject().getSubjectCode().equals(subjectCode)) {
+                            return false;
+                        }
+                    }
+                    
+                    // Status filter (for students)
+                    if (status != null && "STUDENT".equals(user.getRole())) {
+                        boolean isCompleted = submissionService.hasSubmitted(assignment, user);
+                        java.time.LocalDate dueDate = assignment.getDueDate();
+                        
+                        switch (status) {
+                            case "completed":
+                                return isCompleted;
+                            case "overdue":
+                                return !isCompleted && dueDate.isBefore(today);
+                            case "today":
+                                return !isCompleted && dueDate.isEqual(today);
+                            case "week":
+                                return !isCompleted && !dueDate.isBefore(today) && !dueDate.isAfter(weekFromNow);
+                            case "upcoming":
+                                return !isCompleted && dueDate.isAfter(weekFromNow);
+                            case "all":
+                                return !isCompleted;
+                            default:
+                                return true;
+                        }
+                    }
+                    
+                    return true;
+                })
+                .collect(java.util.stream.Collectors.toList());
+            
+            // Apply sorting in backend
+            if (sortBy != null) {
+                assignments = assignments.stream()
+                    .sorted((a, b) -> {
+                        if ("dueDate".equals(sortBy)) {
+                            return a.getDueDate().compareTo(b.getDueDate());
+                        } else if ("difficulty".equals(sortBy)) {
+                            Map<String, Integer> difficultyOrder = new HashMap<>();
+                            difficultyOrder.put("HARD", 3);
+                            difficultyOrder.put("MEDIUM", 2);
+                            difficultyOrder.put("EASY", 1);
+                            
+                            int aOrder = difficultyOrder.getOrDefault(a.getDifficulty(), 0);
+                            int bOrder = difficultyOrder.getOrDefault(b.getDifficulty(), 0);
+                            return Integer.compare(bOrder, aOrder); // Descending order
+                        }
+                        return 0;
+                    })
+                    .collect(java.util.stream.Collectors.toList());
+            }
             
             // For students, add submission status to each assignment
             if ("STUDENT".equals(user.getRole())) {
@@ -72,6 +164,7 @@ public class AssignmentController {
                         assignmentMap.put("createdAt", assignment.getCreatedAt());
                         assignmentMap.put("subject", assignment.getSubject());
                         assignmentMap.put("user", assignment.getUser());
+                        assignmentMap.put("fileNames", assignment.getFileNames());
                         
                         // Check if student has submitted
                         boolean hasSubmitted = submissionService.hasSubmitted(assignment, user);
@@ -91,6 +184,7 @@ public class AssignmentController {
         }
     }
     
+    //idk if this is still relevant
     @GetMapping("/{id}")
     public ResponseEntity<?> getAssignment(@PathVariable Long id) {
         try {
@@ -344,6 +438,51 @@ public class AssignmentController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body("Error: " + e.getMessage());
+        }
+    }
+    
+    // Upload files for assignment
+    @PostMapping("/upload-files")
+    public ResponseEntity<?> uploadFiles(@RequestParam("files") MultipartFile[] files) {
+        try {
+            List<String> fileNames = new ArrayList<>();
+            
+            for (MultipartFile file : files) {
+                if (!file.isEmpty()) {
+                    String storedFileName = fileStorageService.storeFile(file);
+                    fileNames.add(storedFileName);
+                }
+            }
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("fileNames", String.join(",", fileNames));
+            response.put("count", fileNames.size());
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Error uploading files: " + e.getMessage());
+        }
+    }
+    
+    // Download assignment file
+    @GetMapping("/download/{fileName}")
+    public ResponseEntity<Resource> downloadFile(@PathVariable String fileName) {
+        try {
+            Path filePath = fileStorageService.loadFile(fileName);
+            Resource resource = new UrlResource(filePath.toUri());
+            
+            if (resource.exists() && resource.isReadable()) {
+                return ResponseEntity.ok()
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .header(HttpHeaders.CONTENT_DISPOSITION, 
+                        "attachment; filename=\"" + resource.getFilename() + "\"")
+                    .body(resource);
+            } else {
+                return ResponseEntity.notFound().build();
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
     

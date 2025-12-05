@@ -20,7 +20,7 @@ function Assignments({ user, onLogout }) {
 
   console.log('Current subjectFilter:', subjectFilter);
 
-  // Fetch assignments from backend
+  // Fetch assignments from backend with filters
   useEffect(() => {
     if (user && user.id) {
       fetchAssignments();
@@ -30,7 +30,7 @@ function Assignments({ user, onLogout }) {
         fetchStudentSubjects();
       }
     }
-  }, [user]);
+  }, [user, activeTab, searchTerm, subjectFilter, sortBy]); // Re-fetch when filters change
 
   const fetchStudentSubjects = async () => {
     try {
@@ -66,7 +66,34 @@ function Assignments({ user, onLogout }) {
   const fetchAssignments = async () => {
     setLoading(true);
     try {
-      const response = await assignmentAPI.getByUser(user.id);
+      // Build filter params for backend
+      const params = {};
+      
+      // Add search filter
+      if (searchTerm) {
+        params.search = searchTerm;
+      }
+      
+      // Add subject filter
+      if (subjectFilter !== 'all') {
+        if (isTeacher) {
+          params.subjectId = parseInt(subjectFilter);
+        } else {
+          params.subjectCode = subjectFilter;
+        }
+      }
+      
+      // Add status filter (for students only)
+      if (!isTeacher && activeTab !== 'all') {
+        params.status = activeTab;
+      }
+      
+      // Add sort parameter
+      if (sortBy) {
+        params.sortBy = sortBy;
+      }
+      
+      const response = await assignmentAPI.getByUser(user.id, params);
       console.log('Raw assignments response:', response.data);
       const assignmentsData = response.data.map(a => ({
         ...a,
@@ -75,7 +102,6 @@ function Assignments({ user, onLogout }) {
         completed: a.completed || false
       }));
       console.log('Processed assignments:', assignmentsData);
-      console.log('Assignment difficulties:', assignmentsData.map(a => `${a.title}: "${a.difficulty}"`));
       setAssignments(assignmentsData);
     } catch (error) {
       console.error('Error fetching assignments:', error);
@@ -84,7 +110,7 @@ function Assignments({ user, onLogout }) {
     }
   };
 
-  // Calculate counts for tabs
+  // Calculate counts for tabs (keep in frontend for display only)
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const weekFromNow = new Date(today);
@@ -106,64 +132,11 @@ function Assignments({ user, onLogout }) {
   const upcomingCount = assignments.filter(a => !a.completed && new Date(a.dueDate) > weekFromNow).length;
   const completedCount = assignments.filter(a => a.completed).length;
 
-  // Filter assignments
-  const filteredAssignments = assignments.filter(assignment => {
-    // Search filter
-    if (searchTerm && !assignment.title.toLowerCase().includes(searchTerm.toLowerCase())) {
-      return false;
-    }
+  // No filtering needed - backend handles it
+  const filteredAssignments = assignments;
 
-    // Subject filter - for teachers, filter by subjectId; for students, by subject code
-    if (subjectFilter !== 'all') {
-      if (isTeacher) {
-        // For teachers: subjectFilter is subjectId (number)
-        if (assignment.subjectId !== parseInt(subjectFilter)) {
-          return false;
-        }
-      } else {
-        // For students: subjectFilter is subject code (string)
-        console.log('Filtering:', assignment.subject, '===', subjectFilter, '?', assignment.subject === subjectFilter);
-        if (assignment.subject !== subjectFilter) {
-          return false;
-        }
-      }
-    }
-
-    // Tab filter (only for students)
-    if (!isTeacher) {
-      const dueDate = new Date(assignment.dueDate);
-      dueDate.setHours(0, 0, 0, 0);
-
-      if (activeTab === 'completed') return assignment.completed;
-      
-      // Don't show completed assignments in other tabs
-      if (assignment.completed && activeTab !== 'completed') return false;
-      
-      if (activeTab === 'overdue' && dueDate >= today) return false;
-      if (activeTab === 'today' && dueDate.getTime() !== today.getTime()) return false;
-      if (activeTab === 'week' && (dueDate < today || dueDate > weekFromNow)) return false;
-      if (activeTab === 'upcoming' && dueDate <= weekFromNow) return false;
-    }
-
-    return true;
-  });
-
-  // Sort assignments
-  const sortedAssignments = [...filteredAssignments].sort((a, b) => {
-    if (sortBy === 'dueDate') {
-      return new Date(a.dueDate) - new Date(b.dueDate);
-    } else if (sortBy === 'difficulty') {
-      const difficultyOrder = { 'HARD': 3, 'MEDIUM': 2, 'EASY': 1 };
-      const aOrder = difficultyOrder[a.difficulty] || 0;
-      const bOrder = difficultyOrder[b.difficulty] || 0;
-      console.log(`Comparing ${a.title} (${a.difficulty}=${aOrder}) vs ${b.title} (${b.difficulty}=${bOrder})`);
-      return bOrder - aOrder;
-    }
-    return 0;
-  });
-
-  console.log('Current sortBy:', sortBy);
-  console.log('Sorted assignments:', sortedAssignments.map(a => `${a.title} - ${a.difficulty}`));
+  // No sorting needed - backend handles it
+  const sortedAssignments = filteredAssignments;
 
   const isOverdue = (dueDate) => {
     return new Date(dueDate) < today;
@@ -209,10 +182,7 @@ function Assignments({ user, onLogout }) {
         
         <div className="assignments-controls">
           <div className="search-box">
-            <svg className="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="11" cy="11" r="8"></circle>
-              <path d="m21 21-4.35-4.35"></path>
-            </svg>
+            
             <input
               type="text"
               placeholder="Search assignments..."
