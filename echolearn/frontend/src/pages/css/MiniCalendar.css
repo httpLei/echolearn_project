@@ -1,0 +1,88 @@
+/* MiniCalendar.css - Dark Mode Compatible */
+
+.mini-calendar-wrapper {
+    background: var(--bg-secondary); /* ⭐️ Variable */
+    border-radius: 8px;
+    padding: 10px;
+    border: 1px solid var(--border-color); /* ⭐️ Variable */
+    /* Removed shadow for cleaner dark mode look, or use var(--shadow) if defined */
+}
+
+.mini-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.mini-label {
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--text-primary); /* ⭐️ Variable */
+}
+
+.mini-nav button {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    color: var(--text-secondary); /* ⭐️ Variable */
+    padding: 0 5px;
+}
+
+.mini-nav button:hover {
+    color: var(--nav-active);
+}
+
+.mini-weekdays {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 5px;
+}
+
+.week-char {
+    width: 25px;
+    text-align: center;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-tertiary); /* ⭐️ Variable */
+}
+
+.mini-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.mini-row {
+    display: flex;
+    justify-content: space-between;
+}
+
+.mini-day {
+    width: 25px;
+    height: 25px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    color: var(--text-primary); /* ⭐️ Variable */
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.mini-day:hover {
+    background-color: var(--bg-primary); /* ⭐️ Variable */
+}
+
+.mini-day.faded {
+    color: var(--text-tertiary); /* ⭐️ Variable */
+    opacity: 0.5;
+}
+
+.mini-day.today {
+    background-color: var(--nav-active); /* Brand color */
+    color: white; /* Always white on brand color */
+    font-weight: bold;
+}

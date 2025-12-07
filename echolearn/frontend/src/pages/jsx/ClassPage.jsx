@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import Layout from '../../components/Layout.jsx';
 import ClassAssignments from '../../components/ClassAssignments.jsx';
 import { classPostAPI, subjectAPI } from '../../services/api.js';
@@ -7,25 +7,33 @@ import '../css/ClassPage.css';
 
 function ClassPage({ user, onLogout }) {
     const { subjectId } = useParams();
-    const navigate = useNavigate();
+    const feedEndRef = useRef(null); 
     
     const [subject, setSubject] = useState(null);
     const [posts, setPosts] = useState([]);
     const [newPostContent, setNewPostContent] = useState('');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const postEndRef = useRef(null);
     const [activeTab, setActiveTab] = useState('posts');
 
     const [replyTextMap, setReplyTextMap] = useState({});
     const [openReplies, setOpenReplies] = useState({});
     
+    // UI State
     const [openMenuId, setOpenMenuId] = useState(null);
+    const [openReplyMenuId, setOpenReplyMenuId] = useState(null); 
     const [isEditingPostId, setIsEditingPostId] = useState(null);
     const [editingContent, setEditingContent] = useState('');
-    
     const [isEditingReplyId, setIsEditingReplyId] = useState(null);
     const [editingReplyContent, setEditingReplyContent] = useState('');
+
+    // ⭐️ NEW: Delete Modal State
+    const [deleteModal, setDeleteModal] = useState({ 
+        isOpen: false, 
+        type: null, // 'post' or 'reply'
+        id: null,   // id of item to delete
+        postId: null // parent post id (only needed for replies)
+    });
 
     useEffect(() => {
         if (!user || !subjectId) return;
@@ -33,8 +41,10 @@ function ClassPage({ user, onLogout }) {
     }, [user, subjectId]);
 
     useEffect(() => {
-        postEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [posts]);
+        if (activeTab === 'posts') {
+            feedEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        }
+    }, [posts, activeTab]);
 
     const fetchClassData = async () => {
         setLoading(true);
@@ -50,12 +60,10 @@ function ClassPage({ user, onLogout }) {
             const postsResponse = await classPostAPI.getFeed(subjectId);
             if (postsResponse.data.success) {
                 setPosts(postsResponse.data.data.reverse()); 
-            } else {
-                setError("Failed to load class feed.");
             }
         } catch (err) {
             console.error("Error fetching class data:", err);
-            setError("Failed to connect to the class feed service.");
+            setError("Failed to connect.");
         } finally {
             setLoading(false);
         }
@@ -89,19 +97,12 @@ function ClassPage({ user, onLogout }) {
         if (!newPostContent.trim()) return;
 
         try {
-            const response = await classPostAPI.createPost(
-                subjectId, 
-                newPostContent, 
-                user.id
-            );
-
+            const response = await classPostAPI.createPost(subjectId, newPostContent, user.id);
             if (response.data.success) {
                 const newPost = response.data.data;
                 newPost.author = { username: user.username, id: user.id }; 
-                setPosts(prevPosts => [...prevPosts, newPost]);
+                setPosts(prevPosts => [...prevPosts, newPost]); 
                 setNewPostContent('');
-            } else {
-                alert(response.data.message || 'Failed to create post.');
             }
         } catch (error) {
             console.error('Error creating post:', error);
@@ -119,13 +120,7 @@ function ClassPage({ user, onLogout }) {
         if (!content || !content.trim()) return;
         
         try {
-            const response = await classPostAPI.createReply(
-                subjectId,
-                postId,
-                content,
-                user.id
-            );
-
+            const response = await classPostAPI.createReply(subjectId, postId, content, user.id);
             if (response.data.success) {
                 const newReply = response.data.data;
                 newReply.author = { username: user.username, id: user.id }; 
@@ -134,21 +129,17 @@ function ClassPage({ user, onLogout }) {
                     ...prev, 
                     [postId]: [...(prev[postId] || []), newReply]
                 }));
-                
                 setReplyTextMap(prev => ({ ...prev, [postId]: '' }));
                 
-                if (!openReplies[postId]) {
-                    fetchReplies(postId);
-                }
-            } else {
-                alert(response.data.message || 'Failed to submit reply.');
+                if (!openReplies[postId]) fetchReplies(postId);
             }
         } catch (error) {
             console.error('Error creating reply:', error);
-            alert('Failed to submit reply. Check console for details.');
+            alert('Failed to submit reply.');
         }
     };
     
+    // --- EDIT HANDLERS ---
     const handleEditStart = (postId, currentContent) => {
         setIsEditingPostId(postId);
         setEditingContent(currentContent);
@@ -157,15 +148,12 @@ function ClassPage({ user, onLogout }) {
 
     const handleEditSave = async (postId) => {
         if (!editingContent.trim()) return;
-        
         try {
             const response = await classPostAPI.editPost(subjectId, postId, editingContent);
             if (response.data.success) {
                 setPosts(posts.map(p => p.postId === postId ? { ...p, content: response.data.data.content } : p));
                 setIsEditingPostId(null);
                 setEditingContent('');
-            } else {
-                alert('Failed to update post.');
             }
         } catch (error) {
             console.error('Error editing post:', error);
@@ -173,30 +161,14 @@ function ClassPage({ user, onLogout }) {
         }
     };
 
-    const handleDelete = async (postId) => {
-        if (!window.confirm('Are you sure you want to delete this post?')) return;
-        
-        try {
-            const response = await classPostAPI.deletePost(subjectId, postId);
-            if (response.data.success) {
-                setPosts(posts.filter(p => p.postId !== postId));
-            } else {
-                alert('Failed to delete post.');
-            }
-        } catch (error) {
-            console.error('Error deleting post:', error);
-            alert('Failed to delete post.');
-        }
-    };
-    
     const handleEditReplyStart = (replyId, currentContent) => {
         setIsEditingReplyId(replyId);
         setEditingReplyContent(currentContent);
+        setOpenReplyMenuId(null);
     };
 
     const handleEditReplySave = async (postId, replyId) => {
         if (!editingReplyContent.trim()) return;
-
         try {
             const response = await classPostAPI.editReply(subjectId, postId, replyId, editingReplyContent);
             if (response.data.success) {
@@ -206,238 +178,257 @@ function ClassPage({ user, onLogout }) {
                 }));
                 setIsEditingReplyId(null);
                 setEditingReplyContent('');
-            } else {
-                alert('Failed to update reply.');
             }
         } catch (error) {
             console.error('Error editing reply:', error);
             alert('Failed to edit reply.');
         }
     };
-    
-    const handleDeleteReply = async (postId, replyId) => {
-        if (!window.confirm('Are you sure you want to delete this reply?')) return;
+
+    // --- ⭐️ DELETE HANDLERS (Open Modal) ---
+    const openDeletePostModal = (postId) => {
+        setDeleteModal({ isOpen: true, type: 'post', id: postId });
+        setOpenMenuId(null); // Close dropdown
+    };
+
+    const openDeleteReplyModal = (postId, replyId) => {
+        setDeleteModal({ isOpen: true, type: 'reply', id: replyId, postId: postId });
+        setOpenReplyMenuId(null); // Close dropdown
+    };
+
+    const confirmDelete = async () => {
+        const { type, id, postId } = deleteModal;
         
         try {
-            const response = await classPostAPI.deleteReply(subjectId, postId, replyId);
-            if (response.data.success) {
-                setOpenReplies(prev => ({
-                    ...prev,
-                    [postId]: prev[postId].filter(r => r.replyId !== replyId)
-                }));
-            } else {
-                alert('Failed to delete reply.');
+            if (type === 'post') {
+                const response = await classPostAPI.deletePost(subjectId, id);
+                if (response.data.success) {
+                    setPosts(posts.filter(p => p.postId !== id));
+                }
+            } else if (type === 'reply') {
+                const response = await classPostAPI.deleteReply(subjectId, postId, id);
+                if (response.data.success) {
+                    setOpenReplies(prev => ({
+                        ...prev,
+                        [postId]: prev[postId].filter(r => r.replyId !== id)
+                    }));
+                }
             }
         } catch (error) {
-            console.error('Error deleting reply:', error);
-            alert('Failed to delete reply.');
+            console.error(`Error deleting ${type}:`, error);
+            alert(`Failed to delete ${type}.`);
+        } finally {
+            setDeleteModal({ isOpen: false, type: null, id: null, postId: null });
         }
     };
 
+    // --- HELPERS ---
     const formatTime = (isoString) => {
         if (!isoString) return '';
         const date = new Date(isoString);
         return date.toLocaleString('en-US', { hour: '2-digit', minute: '2-digit', month: 'short', day: 'numeric' });
     };
 
-    const getAuthorName = (postOrReply) => {
-        return postOrReply.author?.username || 'Unknown User';
-    };
-    
-    const getAuthorAvatar = (postOrReply) => {
-        return postOrReply.author?.username?.charAt(0).toUpperCase() || '?';
-    };
-
     const isOwnPost = (authorId) => authorId === user.id;
+    const getAuthorAvatar = (p) => p.author?.username?.charAt(0).toUpperCase();
+    const getAuthorName = (p) => p.author?.username;
 
-    if (loading && !subject) {
-        return <Layout user={user} onLogout={onLogout} activePage="dashboard"><div className="loading-message">Loading Class...</div></Layout>;
-    }
-
-    if (error) {
-        return <Layout user={user} onLogout={onLogout} activePage="dashboard"><div className="error-message">{error}</div></Layout>;
-    }
+    if (loading && !subject) return <Layout user={user} onLogout={onLogout} activePage="dashboard"><div className="loading-message">Loading Class...</div></Layout>;
+    if (error) return <Layout user={user} onLogout={onLogout} activePage="dashboard"><div className="error-message">{error}</div></Layout>;
 
     return (
         <Layout user={user} onLogout={onLogout} activePage="dashboard">
             <div className="class-page-container">
-                <div className="class-header">
-                    <h1 className="class-title">{subject.subjectCode}: {subject.subjectName}</h1>
-                    <p className="class-subtitle">Teacher: {subject.teacherUsername}</p>
-                    <div className="class-nav">
-                        <span 
-                            className={`nav-item ${activeTab === 'posts' ? 'active' : ''}`}
-                            onClick={() => setActiveTab('posts')}
-                        >
-                            Posts
-                        </span>
-                        <span 
-                            className={`nav-item ${activeTab === 'assignments' ? 'active' : ''}`}
-                            onClick={() => setActiveTab('assignments')}
-                        >
-                            Assignments
-                        </span>
-                        <span className="nav-item">Grades</span>
-                        <span className="nav-item">Files</span>
+                
+                {/* 1. FIXED HEADER */}
+                <div className="class-header-section">
+                    <div className="class-title-block">
+                        <h1>{subject.subjectCode}: {subject.subjectName}</h1>
+                        <p>Teacher: {subject.teacherUsername}</p>
+                    </div>
+                    
+                    <div className="class-nav-tabs">
+                        <div className={`nav-tab-item ${activeTab === 'posts' ? 'active' : ''}`} onClick={() => setActiveTab('posts')}>Posts</div>
+                        <div className={`nav-tab-item ${activeTab === 'assignments' ? 'active' : ''}`} onClick={() => setActiveTab('assignments')}>Assignments</div>
+                        <div className="nav-tab-item">Grades</div>
+                        <div className="nav-tab-item">Files</div>
                     </div>
                 </div>
 
-                {activeTab === 'posts' && (
-                    <div className="class-feed-content">
-                        <div className="feed-posts-area">
-                            {posts.map((post) => (
-                            <div key={post.postId} className="post-and-reply-wrapper"> 
-                                <div className="post-card">
-                                    <div className="post-header">
-                                        <div className="post-avatar">{getAuthorAvatar(post)}</div> 
-                                        <div className="post-meta">
-                                            <span className="post-author">{getAuthorName(post)}</span>
-                                            <span className="post-time">{formatTime(post.createdAt)}</span>
-                                        </div>
-                                        {isOwnPost(post.author?.id) && (
-                                            <div className="post-options-menu">
-                                                <button className="menu-btn" onClick={() => setOpenMenuId(openMenuId === post.postId ? null : post.postId)}>
-                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                                        <circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle>
-                                                    </svg>
-                                                </button>
-                                                {openMenuId === post.postId && (
-                                                    <div className="menu-dropdown">
-                                                        <button className="menu-item" onClick={() => handleEditStart(post.postId, post.content)}>Edit</button>
-                                                        <button className="menu-item delete-item" onClick={() => handleDelete(post.postId)}>Delete</button>
+                {/* 2. BODY AREA */}
+                <div className="class-scrollable-body">
+                    
+                    {activeTab === 'posts' && (
+                        <>
+                            <div className="feed-scroll-area">
+                                <div className="feed-container">
+                                    {posts.map((post) => (
+                                        <div key={post.postId} className="post-card">
+                                            <div className="post-header">
+                                                <div className="post-author-info">
+                                                    <div className="post-avatar">{getAuthorAvatar(post)}</div>
+                                                    <div className="post-meta-text">
+                                                        <span className="post-author-name">{getAuthorName(post)}</span>
+                                                        <span className="post-timestamp">{formatTime(post.createdAt)}</span>
+                                                    </div>
+                                                </div>
+                                                
+                                                {/* POST MENU */}
+                                                {isOwnPost(post.author?.id) && (
+                                                    <div className="post-options-wrapper">
+                                                        <button className="btn-options" onClick={() => setOpenMenuId(openMenuId === post.postId ? null : post.postId)}>•••</button>
+                                                        {openMenuId === post.postId && (
+                                                            <div className="options-dropdown">
+                                                                <button className="dropdown-item" onClick={() => handleEditStart(post.postId, post.content)}>Edit</button>
+                                                                {/* ⭐️ Use Modal Trigger */}
+                                                                <button className="dropdown-item delete" onClick={() => openDeletePostModal(post.postId)}>Delete</button>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 )}
                                             </div>
-                                        )}
-                                    </div>
-                                    
-                                    <div className="post-content-area"> 
-                                        {isEditingPostId === post.postId ? (
-                                            <div className="edit-form-wrapper">
-                                                <textarea 
-                                                    value={editingContent} 
-                                                    onChange={(e) => setEditingContent(e.target.value)} 
-                                                    className="edit-textarea"
-                                                />
-                                                <div className="edit-actions">
-                                                    <button className="btn-save" onClick={() => handleEditSave(post.postId)} disabled={!editingContent.trim()}>Save</button>
-                                                    <button className="btn-cancel" onClick={() => setIsEditingPostId(null)}>Cancel</button>
+
+                                            {/* POST CONTENT OR EDIT FORM */}
+                                            {isEditingPostId === post.postId ? (
+                                                <div className="edit-mode-container">
+                                                    <textarea 
+                                                        className="edit-textarea" 
+                                                        value={editingContent} 
+                                                        onChange={(e) => setEditingContent(e.target.value)}
+                                                    />
+                                                    <button className="btn-save-edit" onClick={() => handleEditSave(post.postId)}>Save</button>
+                                                    <button className="btn-cancel-edit" onClick={() => setIsEditingPostId(null)}>Cancel</button>
                                                 </div>
+                                            ) : (
+                                                <div className="post-content-text">{post.content}</div>
+                                            )}
+
+                                            <div className="post-footer-actions">
+                                                <button className="btn-text-action" onClick={() => handleReplyToggle(post.postId)}>
+                                                    {openReplies[post.postId] ? 'Hide Replies' : `${openReplies[post.postId]?.length || 'View'} Replies`}
+                                                </button>
                                             </div>
-                                        ) : (
-                                            <p className="post-content-text">{post.content}</p>
-                                        )}
-                                        
-                                        <div className="post-reply-actions-bar">
-                                            <button 
-                                                className="btn-link-action"
-                                                onClick={() => handleReplyToggle(post.postId)}
-                                            >
-                                                {openReplies[post.postId] ? 'Hide Replies' : 'View Replies'}
-                                            </button>
-                                            <span className="action-separator">•</span>
-                                            <span className="reply-count-display">
-                                                {openReplies[post.postId]?.length || 0} replies
-                                            </span>
+                                            
+                                            {/* REPLIES AREA */}
+                                            {openReplies[post.postId] && (
+                                                <div className="replies-section">
+                                                    {openReplies[post.postId].map(reply => (
+                                                        <div key={reply.replyId} className="reply-item">
+                                                            <div className="reply-avatar-small">{getAuthorAvatar(reply)}</div>
+                                                            <div className="reply-content-box">
+                                                                <div className="reply-header" style={{justifyContent: 'space-between'}}>
+                                                                    <div>
+                                                                        <span className="reply-author">{getAuthorName(reply)}</span>
+                                                                        <span className="reply-time" style={{marginLeft:'8px'}}>{formatTime(reply.createdAt)}</span>
+                                                                    </div>
+                                                                    
+                                                                    {/* REPLY MENU */}
+                                                                    {isOwnPost(reply.author?.id) && (
+                                                                        <div className="post-options-wrapper">
+                                                                            <button className="btn-options" style={{fontSize:'12px'}} onClick={() => setOpenReplyMenuId(openReplyMenuId === reply.replyId ? null : reply.replyId)}>•••</button>
+                                                                            {openReplyMenuId === reply.replyId && (
+                                                                                <div className="options-dropdown">
+                                                                                    <button className="dropdown-item" onClick={() => handleEditReplyStart(reply.replyId, reply.content)}>Edit</button>
+                                                                                    {/* ⭐️ Use Modal Trigger */}
+                                                                                    <button className="dropdown-item delete" onClick={() => openDeleteReplyModal(post.postId, reply.replyId)}>Delete</button>
+                                                                                </div>
+                                                                            )}
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+
+                                                                {isEditingReplyId === reply.replyId ? (
+                                                                    <div className="edit-mode-container">
+                                                                        <textarea 
+                                                                            className="edit-textarea" 
+                                                                            value={editingReplyContent} 
+                                                                            onChange={(e) => setEditingReplyContent(e.target.value)}
+                                                                        />
+                                                                        <button className="btn-save-edit" onClick={() => handleEditReplySave(post.postId, reply.replyId)}>Save</button>
+                                                                        <button className="btn-cancel-edit" onClick={() => setIsEditingReplyId(null)}>Cancel</button>
+                                                                    </div>
+                                                                ) : (
+                                                                    <div className="reply-text">{reply.content}</div>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                    
+                                                    <form className="reply-input-row" onSubmit={(e) => handleReplySubmit(post.postId, e)}>
+                                                        <input 
+                                                            type="text" 
+                                                            className="reply-input-field" 
+                                                            placeholder="Write a reply..."
+                                                            value={replyTextMap[post.postId] || ''}
+                                                            onChange={(e) => handleReplyTextChange(post.postId, e.target.value)}
+                                                        />
+                                                        <button type="submit" className="btn-send-icon">➤</button>
+                                                    </form>
+                                                </div>
+                                            )}
                                         </div>
-                                    </div>
+                                    ))}
+                                    <div ref={feedEndRef} />
                                 </div>
-                                
-                                <form className="reply-input-wrapper" onSubmit={(e) => handleReplySubmit(post.postId, e)}>
-                                    <div className="reply-avatar">{user.username.charAt(0).toUpperCase()}</div>
-                                    <input
-                                        type="text"
-                                        className="reply-input"
-                                        placeholder="Add a class comment..."
-                                        value={replyTextMap[post.postId] || ''}
-                                        onChange={(e) => handleReplyTextChange(post.postId, e.target.value)}
+                            </div>
+
+                            {/* FIXED INPUT FOOTER */}
+                            <div className="feed-input-footer">
+                                <form className="feed-input-wrapper" onSubmit={handlePostSubmit}>
+                                    <textarea
+                                        className="post-textarea"
+                                        placeholder={`Message ${subject.subjectCode}...`}
+                                        value={newPostContent}
+                                        onChange={(e) => setNewPostContent(e.target.value)}
+                                        onKeyDown={(e) => {
+                                            if(e.key === 'Enter' && !e.shiftKey) {
+                                                e.preventDefault();
+                                                handlePostSubmit(e);
+                                            }
+                                        }}
                                     />
-                                    <button 
-                                        type="submit" 
-                                        className="btn-reply-send" 
-                                        disabled={!replyTextMap[post.postId]?.trim()}
-                                    >
+                                    <button type="submit" className="btn-send-post" disabled={!newPostContent.trim()}>
                                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                             <line x1="22" y1="2" x2="11" y2="13"></line>
                                             <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
                                         </svg>
                                     </button>
                                 </form>
-
-                                {openReplies[post.postId] && (
-                                    <div className="replies-thread-container">
-                                        {openReplies[post.postId].map(reply => (
-                                            <div key={reply.replyId} className="reply-card-item">
-                                                <div className="reply-card-avatar">{getAuthorAvatar(reply)}</div>
-                                                <div className="reply-card-body">
-                                                    <div className="reply-card-meta">
-                                                        {isEditingReplyId === reply.replyId ? (
-                                                            <div className="edit-reply-form">
-                                                                <textarea 
-                                                                    value={editingReplyContent} 
-                                                                    onChange={(e) => setEditingReplyContent(e.target.value)} 
-                                                                    className="edit-reply-textarea"
-                                                                />
-                                                                <div className="edit-reply-actions">
-                                                                    <button className="btn-save" onClick={() => handleEditReplySave(post.postId, reply.replyId)} disabled={!editingReplyContent.trim()}>Save</button>
-                                                                    <button className="btn-cancel" onClick={() => setIsEditingReplyId(null)}>Cancel</button>
-                                                                </div>
-                                                            </div>
-                                                        ) : (
-                                                            <>
-                                                                <span className="reply-card-author">{getAuthorName(reply)}</span>
-                                                                <span className="reply-card-time">{formatTime(reply.createdAt)}</span>
-                                                            </>
-                                                        )}
-                                                        
-                                                        {isOwnPost(reply.author?.id) && isEditingReplyId !== reply.replyId && (
-                                                            <>
-                                                                <button className="edit-reply-btn" onClick={() => handleEditReplyStart(reply.replyId, reply.content)}>Edit</button>
-                                                                <button className="delete-reply-btn" onClick={() => handleDeleteReply(post.postId, reply.replyId)}>
-                                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                                                        <polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                                                                    </svg>
-                                                                </button>
-                                                            </>
-                                                        )}
-                                                    </div>
-                                                    
-                                                    {isEditingReplyId !== reply.replyId && (
-                                                        <p className="reply-card-content">{reply.content}</p>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
                             </div>
-                        ))}
-                        <div ref={postEndRef} />
-                    </div>
+                        </>
+                    )}
 
-                    <div className="feed-input-area">
-                        <form onSubmit={handlePostSubmit}>
-                            <textarea
-                                className="post-textarea"
-                                placeholder="Share something with your class..."
-                                value={newPostContent}
-                                onChange={(e) => setNewPostContent(e.target.value)}
-                                rows="3"
-                            />
-                            <div className="post-actions-bar">
-                                <button type="submit" className="btn-post" disabled={!newPostContent.trim()}>
-                                    Post
-                                </button>
-                            </div>
-                        </form>
+                    {activeTab === 'assignments' && (
+                        <div style={{padding: '30px', overflowY: 'auto', flex: 1}}>
+                            <ClassAssignments user={user} subjectId={subjectId} subjectCode={subject.subjectCode} />
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* ⭐️ 3. DELETE MODAL COMPONENT */}
+            {deleteModal.isOpen && (
+                <div className="delete-modal-overlay" onClick={() => setDeleteModal({...deleteModal, isOpen: false})}>
+                    <div className="delete-modal-content" onClick={(e) => e.stopPropagation()}>
+                        <div className="delete-icon-wrapper">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <polyline points="3 6 5 6 21 6"></polyline>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                <line x1="10" y1="11" x2="10" y2="17"></line>
+                                <line x1="14" y1="11" x2="14" y2="17"></line>
+                            </svg>
+                        </div>
+                        <h3 className="delete-modal-title">Delete {deleteModal.type === 'post' ? 'Post' : 'Reply'}?</h3>
+                        <p className="delete-modal-text">
+                            Are you sure you want to delete this {deleteModal.type}? This action cannot be undone.
+                        </p>
+                        <div className="delete-modal-actions">
+                            <button className="btn-modal-cancel" onClick={() => setDeleteModal({...deleteModal, isOpen: false})}>Cancel</button>
+                            <button className="btn-modal-delete" onClick={confirmDelete}>Delete</button>
+                        </div>
                     </div>
                 </div>
-                )}
-
-                {activeTab === 'assignments' && (
-                    <ClassAssignments user={user} subjectId={subjectId} subjectCode={subject.subjectCode} />
-                )}
-            </div>
+            )}
         </Layout>
     );
 }

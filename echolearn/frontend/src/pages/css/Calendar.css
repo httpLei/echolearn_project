@@ -1,169 +1,582 @@
-.calendar-container {
-  max-width: 1400px;
-  margin: 0 auto;
+/* Calendar.css - Dark Mode Compatible */
 
+/* 1. LAYOUT (Full Bleed) */
+.calendar-full-bleed {
+    display: flex;
+    margin: -24px; 
+    height: calc(100vh - 60px);
+    width: calc(100% + 48px);
+    background-color: var(--bg-secondary); /* ⭐️ Changed to variable */
+    overflow: hidden;
 }
 
-.page-title {
-  font-size: 32px;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 24px;
+/* 2. SIDEBAR PANEL */
+.cal-sidebar-panel {
+    width: 320px;
+    min-width: 320px;
+    background-color: var(--bg-secondary); /* ⭐️ Changed to variable */
+    border-right: 1px solid var(--border-color); /* ⭐️ Changed to variable */
+    display: flex;
+    flex-direction: column;
+    padding: 24px;
+    gap: 24px;
+    overflow-y: auto;
+    transition: background-color 0.3s, border-color 0.3s;
 }
 
-.rbc-calendar-wrapper {
-  background: white;
-  border-radius: 8px;
-  padding: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+.cal-sidebar-title {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--text-primary); /* ⭐️ Changed to variable */
+    margin: 0;
+    font-family: 'Poppins', sans-serif;
+    letter-spacing: -0.5px;
 }
 
-.rbc-calendar-wrapper .rbc-calendar {
-  margin: 0 !important;
+/* 3. MAIN PANEL */
+.cal-main-panel {
+    flex: 1; 
+    background-color: var(--bg-secondary); /* ⭐️ Changed to variable */
+    display: flex;
+    flex-direction: column;
+    padding: 24px 32px;
+    gap: 16px;
+    height: 100%;
+    overflow: hidden;
+    transition: background-color 0.3s;
 }
 
-.rbc-btn-group button {
-    background-color: var(--bg-secondary) !important;
-    color: var(--text-primary) !important;
-    border: 1px solid var(--border-color) !important;
+/* 4. BUTTONS */
+.create-event-btn {
+    width: 100%;
+    padding: 14px;
+    background-color: #8b2e2e; /* Brand color stays same */
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 4px 6px rgba(139, 46, 46, 0.2);
+}
+
+.create-event-btn:hover {
+    background-color: #a03535;
+    transform: translateY(-1px);
+}
+
+/* Container spacing */
+.mini-calendar-container {
+    width: 100%;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border-color); /* ⭐️ Variable */
+}
+
+.upcoming-section h3 {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-secondary); /* ⭐️ Variable */
+    margin-bottom: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* 5. TOOLBAR STYLING */
+.custom-toolbar {
+    margin-bottom: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.toolbar-top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+/* Search Bar */
+.search-bar {
+    background: var(--bg-primary); /* ⭐️ Variable */
+    padding: 10px 16px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    border: 1px solid transparent;
+    transition: all 0.2s;
+    width: 300px;
+}
+
+.search-bar:focus-within {
+    background: var(--bg-secondary);
+    border-color: #8b2e2e;
+}
+
+.search-icon {
+    font-size: 16px;
+    color: var(--text-tertiary);
+}
+
+.search-bar input {
+    border: none;
+    background: transparent;
+    margin-left: 10px;
+    outline: none;
+    font-size: 14px;
+    color: var(--text-primary); /* ⭐️ Variable */
+    width: 100%;
+}
+
+/* View Switcher */
+.view-switcher {
+    display: flex;
+    gap: 8px;
+}
+
+.view-switcher button {
+    background: transparent;
+    border: none;
+    padding: 8px 16px;
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--text-secondary); /* ⭐️ Variable */
+    font-size: 14px;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+}
+
+.view-switcher button:hover {
+    color: #8b2e2e;
+    background-color: var(--bg-primary); /* ⭐️ Variable */
+    border-radius: 6px 6px 0 0;
+}
+
+.view-switcher button.active {
+    color: #8b2e2e;
+    border-bottom-color: #8b2e2e;
+}
+
+/* Navigation Row */
+.toolbar-nav-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 10px;
+}
+
+.rbc-toolbar-label {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text-primary); /* ⭐️ Variable */
+}
+
+.nav-group button {
+    padding: 8px 16px;
+    margin-right: 8px;
+    background: var(--bg-secondary); /* ⭐️ Variable */
+    border: 1px solid var(--border-color); /* ⭐️ Variable */
+    border-radius: 8px;
+    cursor: pointer;
+    color: var(--text-secondary); /* ⭐️ Variable */
     font-weight: 500;
+    transition: all 0.2s;
+}
+
+.nav-group button:hover {
+    background: var(--bg-primary);
+    border-color: var(--text-tertiary);
+    color: var(--text-primary);
+}
+
+/* ⭐️ BIG CALENDAR DARK MODE OVERRIDES */
+.rbc-calendar {
+    flex: 1;
+    min-height: 0;
+    font-family: 'Poppins', sans-serif;
+    color: var(--text-primary); /* ⭐️ Sets grid text color */
+}
+
+.rbc-header {
+    padding: 12px 0;
+    font-weight: 600;
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border-color) !important;
+}
+
+.rbc-month-view {
+    border: 1px solid var(--border-color) !important;
+    border-radius: 12px;
+}
+
+.rbc-day-bg {
+    border-left: 1px solid var(--border-color) !important;
+}
+
+.rbc-month-row {
+    border-top: 1px solid var(--border-color) !important;
+}
+
+/* Background for days not in current month */
+.rbc-off-range-bg {
+    background-color: var(--bg-primary) !important; 
+    opacity: 0.5;
+}
+
+/* "Today" Highlight */
+.rbc-today {
+    background-color: rgba(139, 46, 46, 0.1) !important; /* Soft red transparent */
+}
+
+/* Time Grid (Week/Day View) specific */
+.rbc-time-view {
+    border: 1px solid var(--border-color) !important;
+}
+.rbc-timeslot-group {
+    border-bottom: 1px solid var(--border-color) !important;
+}
+.rbc-time-content {
+    border-top: 1px solid var(--border-color) !important;
+}
+.rbc-time-header-content {
+    border-left: 1px solid var(--border-color) !important;
+}
+
+/* Modal Styling (Matches Dashboard) */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    backdrop-filter: blur(2px); /* Adds a nice blur effect */
+}
+
+/* ⭐️ MAIN MODAL CONTAINER */
+.modal-content {
+    background-color: var(--bg-secondary) !important; /* ⭐️ Force Theme Background */
+    color: var(--text-primary) !important;            /* ⭐️ Force Theme Text */
+    padding: 24px;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 500px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 10px 25px var(--shadow);
+}
+
+/* HEADER */
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    border-bottom: 1px solid var(--border-color); /* Separator line */
+    padding-bottom: 15px;
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-primary) !important;
+}
+
+.modal-close-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: var(--text-secondary) !important;
+    padding: 4px;
+    border-radius: 4px;
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-close-btn:hover {
+    background-color: var(--bg-primary);
+}
+
+/* FORM INPUTS */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--text-primary) !important; /* ⭐️ Fix label color */
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 8px;
+    background-color: var(--bg-primary) !important; /* ⭐️ Dark input bg */
+    color: var(--text-primary) !important;          /* ⭐️ Light input text */
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.form-group input:focus {
+    border-color: #8b2e2e !important;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 24px;
+    padding-top: 10px;
+}
+
+.btn-cancel {
+    padding: 10px 20px;
+    background: transparent;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    cursor: pointer;
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.btn-cancel:hover {
+    background-color: var(--bg-primary);
+}
+
+.btn-create {
+    padding: 10px 20px;
+    background: #8b2e2e;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.btn-create:hover {
+    background-color: #a03535;
+}
+
+/* ⭐️ NEW: Upcoming List Styles */
+.upcoming-section {
+    flex: 1; /* Grow to fill sidebar */
+    overflow-y: auto; /* Scroll if list gets long */
+}
+
+.no-upcoming {
+    font-size: 13px;
+    color: var(--text-tertiary);
+    font-style: italic;
+    padding-left: 4px;
+}
+
+.upcoming-card {
+    display: flex;
+    background: var(--bg-primary); /* Card background */
+    padding: 12px;
+    border-radius: 10px;
+    margin-bottom: 12px;
+    border: 1px solid transparent;
+    gap: 12px;
     transition: all 0.2s ease;
 }
 
-.rbc-btn-group button:hover {
-    background-color: var(--border-color) !important;
+.upcoming-card:hover {
+    transform: translateX(4px);
+    background: var(--bg-secondary);
+    border-color: var(--border-color);
+    box-shadow: 0 2px 8px var(--shadow);
+}
+
+.upcoming-strip {
+    width: 4px;
+    border-radius: 4px;
+    flex-shrink: 0; /* Prevents strip from shrinking */
+}
+
+.upcoming-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    overflow: hidden;
+}
+
+.upcoming-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis; /* Adds "..." if text is too long */
+}
+
+.upcoming-date {
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+/* ⭐️ NEW: Event Details Modal Styling */
+.event-detail-content {
+    max-width: 450px;
+}
+
+.detail-label {
+    color: var(--text-tertiary) !important;
+}
+
+.detail-value {
     color: var(--text-primary) !important;
 }
 
-.rbc-btn-group button.rbc-active {
-    background-color: var(--nav-active) !important; 
-    color: white !important; 
-    border-color: var(--nav-active) !important;
+.event-detail-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--nav-active); /* Use brand color for title */
+    margin: 0;
 }
 
-
-
-:root[data-theme="dark"] {
-    --calendar-bg: #222222;
-    --calendar-text: #e0e0e0;
-    --calendar-border: #404040;
-    --calendar-header-bg: #333333;
-    --calendar-today-bg: #8b2e2e;
-    --calendar-selected-bg: #444444;
+.event-detail-body {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 10px 0;
 }
 
-
-
-:root[data-theme="dark"] .rbc-calendar {
-    font-family: 'Poppins', sans-serif;
+.event-detail-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
 }
 
-:root[data-theme="dark"] .rbc-month-view,
-:root[data-theme="dark"] .rbc-time-view,
-:root[data-theme="dark"] .rbc-agenda-view {
-    background-color: var(--calendar-bg);
-    border: 1px solid var(--calendar-border);
+.detail-icon {
+    font-size: 20px; /* Legacy size support */
+    background: var(--bg-primary);
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    color: var(--text-secondary); /* ⭐️ Sets the SVG color */
+    flex-shrink: 0;
 }
 
-:root[data-theme="dark"] .rbc-row-content,
-:root[data-theme="dark"] .rbc-row-content .rbc-date-cell,
-:root[data-theme="dark"] .rbc-row-segment {
-    color: var(--calendar-text); 
+.detail-text {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
 }
 
-:root[data-theme="dark"] .rbc-row-segment {
-    border-right: 1px solid var(--calendar-border) !important;
-}
-
-:root[data-theme="dark"] .rbc-date-cell {
-    border-right: none !important; 
-}
-
-:root[data-theme="dark"] .rbc-header {
-    background-color: var(--calendar-header-bg);
-    color: var(--calendar-text);
-    border-color: var(--calendar-border);
-}
-
-:root[data-theme="dark"] .rbc-day-bg.rbc-today {
-    background-color: var(--calendar-today-bg) !important;
-    border-color: var(--calendar-today-bg) !important; 
-}
-
-:root[data-theme="dark"] .rbc-today .rbc-date-cell {
-    color: white !important;
-}
-
-
-:root[data-theme="dark"] .rbc-off-range,
-:root[data-theme="dark"] .rbc-off-range-bg {
-    background-color: #303030 !important; 
+.detail-label {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
     color: var(--text-tertiary);
-    opacity: 0.9; 
-    border-color: var(--calendar-border); 
+    letter-spacing: 0.5px;
 }
 
-:root[data-theme="dark"] .rbc-row-segment {
-    border-right: 1px solid var(--calendar-border) !important;
+.detail-value {
+    font-size: 15px;
+    color: var(--text-primary);
+    line-height: 1.5;
 }
 
-:root[data-theme="dark"] .rbc-time-content,
-:root[data-theme="dark"] .rbc-time-slot,
-:root[data-theme="dark"] .rbc-day-slot {
-    background-color: var(--calendar-bg) !important;
-    border-color: var(--calendar-border) !important;
-}
-
-:root[data-theme="dark"] .rbc-time-gutter,
-:root[data-theme="dark"] .rbc-timeslot-group {
-    background-color: var(--calendar-bg) !important;
-    color: var(--calendar-text) !important;
-    border-color: var(--calendar-border) !important;
-}
-
-:root[data-theme="dark"] .rbc-time-slot {
-    border-bottom: 1px solid var(--calendar-border) !important;
-}
-
-
-
-:root[data-theme="dark"] .rbc-toolbar {
-    color: var(--calendar-text);
-}
-
-:root[data-theme="dark"] .rbc-toolbar button {
-    background-color: var(--calendar-bg);
-    color: var(--calendar-text);
-    border-color: var(--calendar-border);
-}
-
-:root[data-theme="dark"] .rbc-toolbar button:hover {
-    background-color: var(--calendar-selected-bg);
+.detail-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
     color: white;
+    font-size: 12px;
+    font-weight: 600;
+    display: inline-block;
+    align-self: flex-start;
+    width: fit-content;
 }
 
-:root[data-theme="dark"] .rbc-toolbar button.rbc-active {
-    background-color: var(--nav-active); 
+.btn-delete-event {
+    padding: 10px 20px;
+    background: #dc3545; /* Red color for danger */
     color: white;
-    border-color: var(--nav-active);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background 0.2s;
+    margin-right: 8px; /* Space between Delete and Edit */
 }
 
-:root[data-theme="dark"] .rbc-event,
-:root[data-theme="dark"] .rbc-event-content {
-    color: white !important; 
+.btn-delete-event:hover {
+    background: #a71d2a;
 }
 
-:root[data-theme="dark"] .rbc-toolbar .rbc-toolbar-label {
-    color: var(--calendar-text) !important;
+/* Delete Confirmation Modal */
+.delete-modal-content {
+    max-width: 350px !important;
+    text-align: center;
+    padding: 30px !important;
+    background-color: var(--bg-secondary) !important;
 }
 
-:root[data-theme="dark"] .rbc-agenda-empty {
-    color: var(--calendar-text) !important;
-    background-color: var(--calendar-bg) !important;
-    /*padding: 20px;*/
+.delete-icon-wrapper {
+    background: rgba(220, 53, 69, 0.1); /* ⭐️ Transparent red works on both modes */
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
 }
 
-:root[data-theme="dark"] .rbc-agenda-content {
-    background-color: var(--calendar-bg) !important;
-    border-color: var(--calendar-border) !important;
+.delete-modal-content h3 {
+    margin: 0 0 10px;
+    color: var(--text-primary); /* ⭐️ Adaptable text */
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.delete-modal-content p {
+    color: var(--text-secondary); /* ⭐️ Adaptable text */
+    margin: 0 0 25px;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.delete-modal-content p strong {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.btn-delete-confirm {
+    padding: 10px 24px;
+    background: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-delete-confirm:hover {
+    background: #c82333;
 }

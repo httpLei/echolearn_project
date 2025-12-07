@@ -7,14 +7,14 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.core.echolearn.dto.CalendarEventDTO;
 import com.core.echolearn.entity.Assignment;
-import com.core.echolearn.entity.User;
 import com.core.echolearn.entity.Subject;
+import com.core.echolearn.entity.User;
 import com.core.echolearn.repository.AssignmentRepository;
 import com.core.echolearn.repository.AssignmentSubmissionRepository;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class AssignmentService {
@@ -102,19 +102,19 @@ public class AssignmentService {
 
         // Map Assignments to CalendarEventDTOs
         List<CalendarEventDTO> assignmentEvents = assignments.stream()
-            .filter(a -> a.getDueDate() != null) // Only include assignments with a due date
+            .filter(a -> a.getDueDate() != null) 
             .map(a -> new CalendarEventDTO(
                 a.getActivityId(),
                 a.getTitle() + " (Due)",
-                a.getDueDate().atStartOfDay(), // Convert LocalDate to start of day LocalDateTime
-                a.getDueDate().atStartOfDay().plusHours(2), // Give it a 2-hour span for visualization
+                a.getDueDate().atStartOfDay(), 
+                a.getDueDate().atStartOfDay().plusHours(2), 
                 "ASSIGNMENT",
-                a.getCompleted()
+                a.getCompleted(),
+                // ⭐️ FIX: Add the missing arguments here
+                null,                 // Location (Assignments don't have one, so null)
+                a.getDescription()    // Description (Use the assignment's description)
             ))
             .collect(Collectors.toList());
-
-        // Note: You would typically integrate Notification events here as well.
-        // For simplicity, we are only including Assignments for now.
 
         return assignmentEvents;
     }
