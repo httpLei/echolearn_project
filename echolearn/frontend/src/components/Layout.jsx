@@ -6,6 +6,7 @@ import logo from '../images/EchoLearnLogo.png';
 function Layout({ children, user, onLogout, activePage }) {
   const navigate = useNavigate();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [theme, setTheme] = useState(() => {
     return localStorage.getItem('theme') || 'light';
   });
@@ -37,11 +38,13 @@ function Layout({ children, user, onLogout, activePage }) {
   };
 
   const handleLogout = () => {
-    const confirmLogout = window.confirm('Are you sure you want to logout?');
-    if (confirmLogout) {
-      setIsSettingsOpen(false);
-      onLogout();
-    }
+    setIsLogoutModalOpen(true);
+    setIsSettingsOpen(false);
+  };
+
+  const confirmLogout = () => {
+    setIsLogoutModalOpen(false);
+    onLogout();
   };
 
   return (
@@ -201,6 +204,33 @@ function Layout({ children, user, onLogout, activePage }) {
           {children}
         </main>
       </div>
+
+      {/* Logout Confirmation Modal */}
+      {isLogoutModalOpen && (
+        <div className="modal-overlay" onClick={() => setIsLogoutModalOpen(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <button className="modal-close-btn" onClick={() => setIsLogoutModalOpen(false)}>
+              ×
+            </button>
+            <h2 className="modal-title">Confirm Logout</h2>
+            <p className="modal-message">Are you sure you want to logout?</p>
+            <div className="modal-buttons">
+              <button 
+                className="modal-btn cancel-btn" 
+                onClick={() => setIsLogoutModalOpen(false)}
+              >
+                Cancel
+              </button>
+              <button 
+                className="modal-btn confirm-btn" 
+                onClick={confirmLogout}
+              >
+                Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

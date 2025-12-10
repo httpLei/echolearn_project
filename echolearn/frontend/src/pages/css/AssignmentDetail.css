@@ -20,7 +20,7 @@
 }
 
 .btn-back:hover {
-  color: #8E1616;
+  color: #E2852E;
 }
 
 .detail-header {
@@ -64,8 +64,8 @@
 
 .subject-tag {
   padding: 4px 12px;
-  background-color: #FFF5E1;
-  color: #8E1616;
+  background-color: #ABE0F0;
+  color: #E2852E;
   border-radius: 4px;
   font-weight: 500;
 }
@@ -109,18 +109,18 @@
 }
 
 .difficulty-hard {
-  background-color: #8E1616;
+  background-color: #E2852E;
   color: white;
 }
 
 .difficulty-medium {
-  background-color: #FFBC4C;
-  color: #1D1616;
+  background-color: #ABE0F0;
+  color: #E2852E;
 }
 
 .difficulty-easy {
-  background-color: #EEEEEE;
-  color: #1D1616;
+  background-color: #e8f5e9;
+  color: #E2852E;
 }
 
 .alert-banner {
@@ -135,15 +135,15 @@
 }
 
 .alert-banner.overdue {
-  background-color: #FFF5F5;
-  color: #8E1616;
-  border-left: 4px solid #8E1616;
+  background-color: #ABE0F0;
+  color: #E2852E;
+  border-left: 4px solid #E2852E;
 }
 
 .alert-banner.success {
-  background-color: #F0F9FF;
-  color: #0369A1;
-  border-left: 4px solid #0369A1;
+  background-color: #e8f5e9;
+  color: #E2852E;
+  border-left: 4px solid #E2852E;
 }
 
 .detail-content {
@@ -277,7 +277,7 @@
 
 .submission-textarea:focus {
   outline: none;
-  border-color: #8E1616;
+  border-color: #E2852E;
 }
 
 .file-upload-area {
@@ -293,8 +293,8 @@
 }
 
 .file-upload-area:hover {
-  border-color: #8E1616;
-  background-color: #FFF5F5;
+  border-color: #E2852E;
+  background-color: #ABE0F0;
 }
 
 .file-upload-button {
@@ -302,7 +302,7 @@
   align-items: center;
   gap: 8px;
   padding: 10px 20px;
-  background-color: #8E1616;
+  background-color: #E2852E;
   color: white;
   border-radius: 8px;
   font-size: 14px;
@@ -313,7 +313,7 @@
 }
 
 .file-upload-button:hover {
-  background-color: #6E1111;
+  background-color: #c97326;
 }
 
 .file-upload-hint {
@@ -360,13 +360,13 @@
   padding: 4px;
   background: transparent;
   border: none;
-  color: #8E1616;
+  color: #E2852E;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .btn-remove-file:hover {
-  color: #6E1111;
+  color: #c97326;
 }
 
 .submission-actions {
@@ -378,7 +378,7 @@
 .btn-submit {
   flex: 1;
   padding: 12px 24px;
-  background-color: #8E1616;
+  background-color: #E2852E;
   color: white;
   border: none;
   border-radius: 8px;
@@ -390,7 +390,7 @@
 }
 
 .btn-submit:hover:not(:disabled) {
-  background-color: #6E1111;
+  background-color: #c97326;
 }
 
 .btn-submit:disabled {
@@ -415,7 +415,7 @@
   width: 18px;
   height: 18px;
   cursor: pointer;
-  accent-color: #8E1616;
+  accent-color: #E2852E;
 }
 
 .checkbox-label span {
@@ -436,8 +436,8 @@
 }
 
 .btn-cancel:hover {
-  border-color: #8E1616;
-  color: #8E1616;
+  border-color: #E2852E;
+  color: #E2852E;
 }
 
 .submission-complete {
@@ -511,8 +511,8 @@
 .btn-secondary {
   padding: 10px 20px;
   background-color: var(--bg-secondary);
-  color: #8E1616;
-  border: 2px solid #8E1616;
+  color: #E2852E;
+  border: 2px solid #E2852E;
   border-radius: 8px;
   font-size: 14px;
   font-weight: 600;
@@ -522,7 +522,7 @@
 }
 
 .btn-secondary:hover {
-  background-color: #8E1616;
+  background-color: #E2852E;
   color: white;
 }
 
@@ -587,18 +587,18 @@
 }
 
 .info-value.status.submitted {
-  background-color: #F0F9FF;
-  color: #0369A1;
+  background-color: #ABE0F0;
+  color: #E2852E;
 }
 
 .info-value.status.overdue {
-  background-color: #FFF5F5;
-  color: #8E1616;
+  background-color: #FFEE91;
+  color: #E2852E;
 }
 
 .info-value.status.assigned {
-  background-color: #FFF5E1;
-  color: #8E1616;
+  background-color: #e8f5e9;
+  color: #E2852E;
 }
 
 .loading {
@@ -623,7 +623,7 @@
 
 .btn-primary {
   padding: 12px 24px;
-  background-color: #8E1616;
+  background-color: #E2852E;
   color: white;
   border: none;
   border-radius: 8px;
@@ -635,7 +635,7 @@
 }
 
 .btn-primary:hover {
-  background-color: #6E1111;
+  background-color: #c97326;
   transform: translateY(-1px);
 }
 
@@ -677,8 +677,8 @@
 .form-textarea:focus,
 .form-select:focus {
   outline: none;
-  border-color: #8E1616;
-  box-shadow: 0 0 0 3px rgba(142, 22, 22, 0.1);
+  border-color: #E2852E;
+  box-shadow: 0 0 0 3px rgba(226, 133, 46, 0.1);
 }
 
 .form-row {
@@ -759,7 +759,7 @@
 }
 
 .student-info svg {
-  color: #8E1616;
+  color: #E2852E;
 }
 
 .submission-date {
@@ -792,7 +792,7 @@
 }
 
 .file-badge svg {
-  color: #8E1616;
+  color: #E2852E;
 }
 
 .submission-content {
@@ -829,7 +829,7 @@
   width: 100%;
   margin-top: 16px;
   padding: 12px 16px;
-  background-color: #8E1616;
+  background-color: #E2852E;
   color: white;
   border: none;
   border-radius: 8px;
@@ -845,9 +845,9 @@
 }
 
 .btn-edit-assignment:hover {
-  background-color: #6E1111;
+  background-color: #c97326;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(142, 22, 22, 0.2);
+  box-shadow: 0 4px 12px rgba(226, 133, 46, 0.2);
 }
 
 /* Modal Styles */
@@ -926,7 +926,7 @@
 }
 
 .modal-close:hover {
-  color: #8E1616;
+  color: #E2852E;
   background: var(--bg-secondary);
 }
 

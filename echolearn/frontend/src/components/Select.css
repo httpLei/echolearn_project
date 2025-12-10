@@ -24,19 +24,19 @@
 }
 
 .select-trigger:hover {
-  border-color: #8E1616;
+  border-color: #ABE0F0;
   box-shadow: 0 4px 12px rgba(142, 22, 22, 0.15);
   transform: translateY(-1px);
 }
 
 .select-trigger:focus {
   outline: none;
-  border-color: #8E1616;
+  border-color: #ABE0F0;
   box-shadow: 0 0 0 4px rgba(142, 22, 22, 0.1);
 }
 
 .select-trigger.open {
-  border-color: #8E1616;
+  border-color: #ABE0F0;
   box-shadow: 0 0 0 4px rgba(142, 22, 22, 0.1);
 }
 

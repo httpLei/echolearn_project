@@ -21,8 +21,8 @@
 .btn-mark-all {
   padding: 10px 20px;
   background-color: var(--bg-secondary);
-  color: #8E1616;
-  border: 2px solid #8E1616;
+  color: #E2852E;
+  border: 2px solid #E2852E;
   border-radius: 12px;
   font-size: 14px;
   font-weight: 600;
@@ -32,7 +32,7 @@
 }
 
 .btn-mark-all:hover {
-  background-color: #8E1616;
+  background-color: #E2852E;
   color: white;
 }
 
@@ -70,13 +70,13 @@
 }
 
 .unread-icon {
-  background-color: #FFE5E5;
-  color: #8E1616;
+  background-color: #ABE0F0;
+  color: #E2852E;
 }
 
 .total-icon {
-  background-color: #FFF5E1;
-  color: #8E1616;
+  background-color: #e8f5e9;
+  color: #E2852E;
 }
 
 .stat-info {
@@ -129,7 +129,7 @@
 
 .tab.active {
   color: var(--text-primary);
-  border-bottom-color: #8E1616;
+  border-bottom-color: #E2852E;
 }
 
 .notifications-list {
@@ -158,8 +158,8 @@
 }
 
 .notification-card.unread {
-  border-left: 4px solid #8E1616;
-  background-color: rgba(142, 22, 22, 0.1);
+  border-left: 4px solid #E2852E;
+  background-color: rgba(171, 224, 240, 0.1);
 }
 
 .notification-card:hover {
@@ -197,7 +197,7 @@
 
 .btn-mark-read {
   padding: 10px 20px;
-  background-color: #8E1616;
+  background-color: #E2852E;
   color: white;
   border: none;
   border-radius: 8px;
@@ -210,7 +210,7 @@
 }
 
 .btn-mark-read:hover {
-  background-color: #6E1111;
+  background-color: #c97326;
 }
 
 .notification-actions {

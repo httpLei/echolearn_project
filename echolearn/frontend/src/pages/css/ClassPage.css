@@ -1,5 +1,51 @@
 /* ClassPage.css - Fixed Layout & Chat-Style Feed */
 
+/* Scrollbar styling for light mode */
+.feed-scroll-area::-webkit-scrollbar,
+.edit-textarea::-webkit-scrollbar,
+.post-content-text::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.feed-scroll-area::-webkit-scrollbar-track,
+.edit-textarea::-webkit-scrollbar-track,
+.post-content-text::-webkit-scrollbar-track {
+    background: white;
+}
+
+.feed-scroll-area::-webkit-scrollbar-thumb,
+.edit-textarea::-webkit-scrollbar-thumb,
+.post-content-text::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+.feed-scroll-area::-webkit-scrollbar-thumb:hover,
+.edit-textarea::-webkit-scrollbar-thumb:hover,
+.post-content-text::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* Scrollbar styling for dark mode */
+:root[data-theme="dark"] .feed-scroll-area::-webkit-scrollbar-track,
+:root[data-theme="dark"] .edit-textarea::-webkit-scrollbar-track,
+:root[data-theme="dark"] .post-content-text::-webkit-scrollbar-track {
+    background: #1a1a1a;
+}
+
+:root[data-theme="dark"] .feed-scroll-area::-webkit-scrollbar-thumb,
+:root[data-theme="dark"] .edit-textarea::-webkit-scrollbar-thumb,
+:root[data-theme="dark"] .post-content-text::-webkit-scrollbar-thumb {
+    background: #555;
+}
+
+:root[data-theme="dark"] .feed-scroll-area::-webkit-scrollbar-thumb:hover,
+:root[data-theme="dark"] .edit-textarea::-webkit-scrollbar-thumb:hover,
+:root[data-theme="dark"] .post-content-text::-webkit-scrollbar-thumb:hover {
+    background: #777;
+}
+
 .class-page-container {
     height: calc(100vh - 60px); /* Fill remaining height */
     display: flex;
@@ -100,6 +146,64 @@
     box-shadow: 0 2px 10px rgba(0,0,0,0.03); /* Subtle lift */
 }
 
+.post-input-full {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.post-title-input {
+    width: 100%;
+    border: none;
+    background: transparent;
+    color: var(--text-primary);
+    font-size: 15px;
+    font-weight: 600;
+    padding: 4px;
+    outline: none;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.post-title-input::placeholder {
+    color: var(--text-tertiary);
+    font-weight: 400;
+}
+
+.formatting-toolbar {
+    display: flex;
+    gap: 4px;
+    padding: 4px 0;
+}
+
+.format-btn {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.format-btn:hover {
+    background: var(--bg-secondary);
+    border-color: var(--nav-active);
+    color: var(--nav-active);
+}
+
+.textarea-container {
+    flex: 1;
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+}
+
 .post-textarea {
     flex: 1;
     border: none;
@@ -107,14 +211,49 @@
     color: var(--text-primary);
     font-size: 14px;
     resize: none;
-    max-height: 120px; /* Allow slightly taller growth */
-    padding: 4px; /* Internal spacing */
+    height: 40px;
+    min-height: 40px;
+    max-height: 120px;
+    padding: 4px;
+    padding-right: 32px; /* Space for expand button */
     font-family: inherit;
     line-height: 1.5;
+    transition: height 0.3s ease, max-height 0.3s ease;
+}
+
+.post-textarea.expanded {
+    height: 200px;
+    max-height: 300px;
 }
 
 .post-textarea:focus {
     outline: none;
+}
+
+.btn-expand-textarea {
+    position: absolute;
+    right: 4px;
+    top: 4px;
+    background: transparent;
+    border: none;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+/* Move expand button to the left in edit mode to avoid scrollbar overlap */
+.edit-mode-container .btn-expand-textarea {
+    right: 20px;
+}
+
+.btn-expand-textarea:hover {
+    background: var(--bg-secondary);
+    color: var(--nav-active);
 }
 
 /* Ensure the scroll area has space so the last post isn't hidden */
@@ -173,8 +312,8 @@
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #FFB266 0%, #fae2c8 100%);
-    color: #5c3a18;
+    background: linear-gradient(135deg, #ABE0F0 0%, #E2852E 100%);
+    color: white;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -372,18 +511,33 @@
     color: #dc3545;
 }
 
+/* Edit Mode Container */
+.edit-mode-container .textarea-container {
+    position: relative;
+    margin-bottom: 10px;
+}
+
 /* Edit Mode Textarea */
 .edit-textarea {
     width: 100%;
     padding: 8px;
-    margin-bottom: 10px;
+    padding-right: 32px;
     border: 1px solid var(--nav-active);
     border-radius: 8px;
     background: var(--bg-primary);
     color: var(--text-primary);
     font-family: inherit;
     font-size: 14px;
-    resize: vertical;
+    resize: none;
+    height: 60px;
+    min-height: 60px;
+    max-height: 150px;
+    transition: height 0.3s ease, max-height 0.3s ease;
+}
+
+.edit-textarea.expanded {
+    height: 200px;
+    max-height: 300px;
 }
 
 .btn-save-edit {

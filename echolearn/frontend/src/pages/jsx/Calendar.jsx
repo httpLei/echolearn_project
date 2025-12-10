@@ -14,11 +14,15 @@ const localizer = momentLocalizer(moment);
 
 const EventWrapper = ({ event, children }) => {
     let bg = '#E2852E'; 
+    let textColor = 'white';
     if (event.resourceType === 'CLASS') bg = '#8b2e2e'; 
-    if (event.resourceType === 'ASSIGNMENT') bg = '#4CAF50'; 
+    if (event.resourceType === 'ASSIGNMENT') {
+        bg = '#ABE0F0';
+        textColor = '#7b542f';
+    }
 
     return React.cloneElement(children, {
-        style: { ...children.props.style, backgroundColor: bg, border: 'none', borderRadius: '4px' },
+        style: { ...children.props.style, backgroundColor: bg, color: textColor, border: 'none', borderRadius: '4px' },
     });
 };
 
@@ -181,7 +185,7 @@ function Calendar({ user, onLogout }) {
                                     <div key={evt.id} className="upcoming-card" onClick={() => setSelectedEvent(evt)}>
                                         <div className="upcoming-strip" style={{
                                             backgroundColor: evt.resourceType === 'CLASS' ? '#8b2e2e' :
-                                                             evt.resourceType === 'ASSIGNMENT' ? '#4CAF50' : '#E2852E'
+                                                             evt.resourceType === 'ASSIGNMENT' ? '#ABE0F0' : '#E2852E'
                                         }}></div>
                                         <div className="upcoming-info">
                                             <span className="upcoming-title">{evt.title}</span>
@@ -204,6 +208,24 @@ function Calendar({ user, onLogout }) {
                             components={components}
                             defaultView='month'
                             onSelectEvent={(event) => setSelectedEvent(event)}
+                            eventPropGetter={(event) => {
+                                let style = {
+                                    backgroundColor: '#E2852E',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '4px',
+                                    fontSize: '11px',
+                                    padding: '2px 4px'
+                                };
+                                if (event.resourceType === 'CLASS') {
+                                    style.backgroundColor = '#8b2e2e';
+                                }
+                                if (event.resourceType === 'ASSIGNMENT') {
+                                    style.backgroundColor = '#ABE0F0';
+                                    style.color = '#7b542f';
+                                }
+                                return { style };
+                            }}
                         />
                     </div>
                 </div>
@@ -288,7 +310,7 @@ function Calendar({ user, onLogout }) {
                                 <div className="detail-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg></div>
                                 <div className="detail-text">
                                     <span className="detail-label">Type</span>
-                                    <span className="detail-badge" style={{backgroundColor: selectedEvent.resourceType === 'CLASS' ? '#8b2e2e' : selectedEvent.resourceType === 'ASSIGNMENT' ? '#4CAF50' : '#E2852E'}}>{selectedEvent.resourceType}</span>
+                                    <span className="detail-badge" style={{backgroundColor: selectedEvent.resourceType === 'CLASS' ? '#8b2e2e' : selectedEvent.resourceType === 'ASSIGNMENT' ? '#ABE0F0' : '#E2852E', color: selectedEvent.resourceType === 'ASSIGNMENT' ? '#7b542f' : 'white'}}>{selectedEvent.resourceType}</span>
                                 </div>
                             </div>
                         </div>

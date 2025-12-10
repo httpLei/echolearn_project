@@ -107,7 +107,7 @@
 }
 
 .toggle-password:hover {
-  color: #8b2e2e;
+  color: #E2852E;
 }
 
 .toggle-password:focus {
@@ -125,7 +125,7 @@
 
 .form-group input:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: #E2852E;
 }
 
 .error-message {
@@ -140,7 +140,7 @@
 .btn-submit {
   width: 100%;
   padding: 14px;
-  background-color: #8b2e2e;
+  background-color: #E2852E;
   color: white;
   border: none;
   border-radius: 12px;
@@ -152,9 +152,9 @@
 }
 
 .btn-submit:hover:not(:disabled) {
-  background-color: #6b1e1e;
+  background-color: #c97326;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(139, 46, 46, 0.4);
+  box-shadow: 0 4px 12px rgba(123, 84, 47, 0.4);
 }
 
 .btn-submit:disabled {
@@ -170,7 +170,7 @@
 }
 
 .link {
-  color: #8b2e2e;
+  color: #7b542f;
   text-decoration: none;
   font-weight: 600;
 }

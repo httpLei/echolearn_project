@@ -23,7 +23,7 @@
   align-items: center;
   gap: 8px;
   padding: 10px 20px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #E2852E 0%, #c97326 100%);
   color: white;
   border: none;
   border-radius: 8px;
@@ -31,12 +31,12 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 2px 8px rgba(123, 84, 47, 0.3);
 }
 
 .btn-create-assignment:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 4px 12px rgba(123, 84, 47, 0.4);
 }
 
 .assignments-controls {
@@ -80,8 +80,8 @@
 
 .search-input:focus {
   outline: none;
-  border-color: #8E1616;
-  box-shadow: 0 0 0 3px rgba(142, 22, 22, 0.1);
+  border-color: #E2852E;
+  box-shadow: 0 0 0 3px rgba(123, 84, 47, 0.1);
 }
 
 .filters {
@@ -123,7 +123,7 @@
 
 .tab.active {
   color: var(--text-primary);
-  border-bottom-color: #8E1616;
+  border-bottom-color: #E2852E;
 }
 
 .assignments-list {
@@ -138,16 +138,27 @@
   border-radius: 8px;
   padding: 20px;
   transition: all 0.2s;
+  color: var(--text-primary);
+}
+
+:root[data-theme="dark"] .assignment-card {
+  background-color: #2d2d2d;
+  color: #e0e0e0;
+}
+
+:root[data-theme="light"] .assignment-card {
+  background-color: white;
+  color: #2c2c2c;
 }
 
 .assignment-card:hover {
   filter: drop-shadow(0 4px 12px var(--shadow));
   transform: translateY(-2px);
-  border-color: #8E1616;
+  border-color: #E2852E;
 }
 
 .assignment-card.overdue {
-  border-color: #8E1616;
+  border-color: #E2852E;
 }
 
 .assignment-header {
@@ -176,7 +187,7 @@
   border: 1px solid var(--border-color);
   border-radius: 6px;
   cursor: pointer;
-  color: #8E1616;
+  color: #E2852E;
   transition: all 0.2s ease;
   display: flex;
   align-items: center;
@@ -184,12 +195,12 @@
 }
 
 .btn-delete-assignment:hover {
-  background: rgba(142, 22, 22, 0.1);
-  border-color: #8E1616;
+  background: rgba(123, 84, 47, 0.1);
+  border-color: #E2852E;
 }
 
 .alert-icon {
-  color: #8E1616;
+  color: #E2852E;
   flex-shrink: 0;
   margin-top: 2px;
 }
@@ -202,11 +213,27 @@
   transition: color 0.3s ease;
 }
 
+:root[data-theme="dark"] .assignment-title {
+  color: #e0e0e0;
+}
+
+:root[data-theme="light"] .assignment-title {
+  color: #2c2c2c;
+}
+
 .assignment-description {
   font-size: 14px;
   color: var(--text-secondary);
   line-height: 1.4;
   transition: color 0.3s ease;
+}
+
+:root[data-theme="dark"] .assignment-description {
+  color: #b0b0b0;
+}
+
+:root[data-theme="light"] .assignment-description {
+  color: #666;
 }
 
 .difficulty-badge {
@@ -219,18 +246,18 @@
 }
 
 .difficulty-hard {
-  background-color: #8E1616;
+  background-color: #E2852E;
   color: white;
 }
 
 .difficulty-medium {
-  background-color: #FFBC4C;
-  color: #1D1616;
+  background-color: #ABE0F0;
+  color: #E2852E;
 }
 
 .difficulty-easy {
-  background-color: #EEEEEE;
-  color: #1D1616;
+  background-color: #e8f5e9;
+  color: #E2852E;
 }
 
 .assignment-meta {
@@ -241,6 +268,14 @@
   font-size: 14px;
   color: var(--text-secondary);
   transition: color 0.3s ease;
+}
+
+:root[data-theme="dark"] .assignment-meta {
+  color: #b0b0b0;
+}
+
+:root[data-theme="light"] .assignment-meta {
+  color: #666;
 }
 
 .meta-item {
@@ -255,8 +290,8 @@
 
 .subject-tag {
   padding: 4px 8px;
-  background-color: #FFF5E1;
-  color: #8E1616;
+  background-color: #ABE0F0;
+  color: #E2852E;
   border-radius: 4px;
   font-weight: 500;
 }

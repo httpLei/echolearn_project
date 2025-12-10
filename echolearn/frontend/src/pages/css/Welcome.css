@@ -51,23 +51,23 @@
 }
 
 .btn-signin {
-  background-color: #8b2e2e;
+  background-color: #E2852E;
   color: white;
 }
 
 .btn-signin:hover {
-  background-color: #6b1e1e;
+  background-color: #c97326;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(139, 46, 46, 0.4);
+  box-shadow: 0 8px 20px rgba(226, 133, 46, 0.3);
 }
 
 .btn-signup {
-  background-color: #b8860b;
-  color: white;
+  background-color: #ABE0F0;
+  color: #E2852E;
 }
 
 .btn-signup:hover {
-  background-color: #987008;
+  background-color: #8fd4e8;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(184, 134, 11, 0.4);
+  box-shadow: 0 8px 20px rgba(171, 224, 240, 0.4);
 }

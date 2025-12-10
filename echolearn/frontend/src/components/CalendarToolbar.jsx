@@ -38,7 +38,9 @@ const CalendarToolbar = (toolbar) => {
                     <button onClick={goToBack}>Back</button>
                     <button onClick={goToNext}>Next</button>
                 </div>
-                <span className="rbc-toolbar-label" style={{ fontSize: '20px' }}>{toolbar.label}</span>
+                <span className="rbc-toolbar-label" style={{ fontSize: '20px' }}>
+                    {toolbar.view === 'day' ? toolbar.label.replace(/([a-zA-Z]+)\s([a-zA-Z]+)/, '$1, $2') : toolbar.label}
+                </span>
             </div>
         </div>
     );

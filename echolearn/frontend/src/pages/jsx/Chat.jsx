@@ -19,6 +19,7 @@ function Chat({ user, onLogout }) {
   const [chatUsers, setChatUsers] = useState([]); // Existing conversations
   const [allUsers, setAllUsers] = useState([]); // All users for search
   const [loading, setLoading] = useState(true);
+  const [deleteSideChatModal, setDeleteSideChatModal] = useState({ isOpen: false, sideChatId: null });
   const fileInputRef = useRef(null);
   const messagesEndRef = useRef(null);
 
@@ -224,10 +225,12 @@ function Chat({ user, onLogout }) {
 
   const handleDeleteSideChat = async (sideChatId, e) => {
     e.stopPropagation();
-    
-    if (!window.confirm('Are you sure you want to delete this side chat?')) {
-      return;
-    }
+    setDeleteSideChatModal({ isOpen: true, sideChatId });
+  };
+
+  const confirmDeleteSideChat = async () => {
+    const { sideChatId } = deleteSideChatModal;
+    setDeleteSideChatModal({ isOpen: false, sideChatId: null });
 
     try {
       await conversationAPI.deleteSideChat(sideChatId);
@@ -502,6 +505,33 @@ function Chat({ user, onLogout }) {
                 </button>
                 <button className="btn-modal-create" onClick={handleCreateSideChat}>
                   Create
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Delete Side Chat Modal */}
+        {deleteSideChatModal.isOpen && (
+          <div className="delete-modal-overlay" onClick={() => setDeleteSideChatModal({ isOpen: false, sideChatId: null })}>
+            <div className="delete-modal-content" onClick={(e) => e.stopPropagation()}>
+              <div className="delete-icon-wrapper">
+                <i className="fas fa-trash"></i>
+              </div>
+              <h2 className="delete-modal-title">Delete Side Chat?</h2>
+              <p className="delete-modal-text">Are you sure you want to delete this side chat? This action cannot be undone.</p>
+              <div className="delete-modal-actions">
+                <button 
+                  className="btn-modal-cancel" 
+                  onClick={() => setDeleteSideChatModal({ isOpen: false, sideChatId: null })}
+                >
+                  Cancel
+                </button>
+                <button 
+                  className="btn-modal-delete" 
+                  onClick={confirmDeleteSideChat}
+                >
+                  Delete
                 </button>
               </div>
             </div>

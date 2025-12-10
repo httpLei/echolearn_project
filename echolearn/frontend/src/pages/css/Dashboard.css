@@ -19,7 +19,7 @@
 }
 
 .create-class-btn {
-  background: var(--primary-color, #e74c3c);
+  background: var(--primary-color, #E2852E);
   color: white;
   border: none;
   padding: 12px 24px;
@@ -28,13 +28,13 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(231, 76, 60, 0.3);
+  box-shadow: 0 2px 8px rgba(123, 84, 47, 0.3);
 }
 
 .create-class-btn:hover {
-  background: var(--primary-hover, #c0392b);
+  background: var(--primary-hover, #c97326);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.4);
+  box-shadow: 0 4px 12px rgba(123, 84, 47, 0.4);
 }
 
 .create-class-btn:active {
@@ -227,8 +227,8 @@
 .form-group input:focus,
 .form-group textarea:focus {
   outline: none;
-  border-color: var(--primary-color, #e74c3c);
-  box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1);
+  border-color: var(--primary-color, #E2852E);
+  box-shadow: 0 0 0 3px rgba(123, 84, 47, 0.1);
 }
 
 .form-group input:disabled,
@@ -243,13 +243,13 @@
 }
 
 .error-message {
-  background: rgba(231, 76, 60, 0.1);
-  color: #e74c3c;
+  background: rgba(123, 84, 47, 0.1);
+  color: #E2852E;
   padding: 12px;
   border-radius: 8px;
   margin-bottom: 20px;
   font-size: 14px;
-  border: 1px solid rgba(231, 76, 60, 0.3);
+  border: 1px solid rgba(123, 84, 47, 0.3);
 }
 
 .modal-actions {
@@ -282,14 +282,14 @@
 }
 
 .btn-create {
-  background: var(--primary-color, #e74c3c);
+  background: var(--primary-color, #E2852E);
   color: white;
 }
 
 .btn-create:hover:not(:disabled) {
-  background: var(--primary-hover, #c0392b);
+  background: var(--primary-hover, #c97326);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.4);
+  box-shadow: 0 4px 12px rgba(123, 84, 47, 0.4);
 }
 
 .btn-cancel:disabled,
@@ -354,14 +354,14 @@
 }
 
 .btn-edit {
-  background: var(--primary-color, #e74c3c);
+  background: var(--primary-color, #E2852E);
   color: white;
 }
 
 .btn-edit:hover:not(:disabled) {
-  background: var(--primary-hover, #c0392b);
+  background: var(--primary-hover, #c97326);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.4);
+  box-shadow: 0 4px 12px rgba(123, 84, 47, 0.4);
 }
 
 .btn-delete {
