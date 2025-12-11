@@ -39,6 +39,7 @@ export const assignmentAPI = {
   unsubmit: (assignmentId, studentId) => api.delete(`/assignments/${assignmentId}/unsubmit?studentId=${studentId}`),
   getSubmission: (assignmentId, studentId) => api.get(`/assignments/${assignmentId}/submission?studentId=${studentId}`),
   getAllSubmissions: (assignmentId) => api.get(`/assignments/${assignmentId}/submissions`),
+  gradeSubmission: (submissionId, gradeData) => api.put(`/assignments/submissions/${submissionId}/grade`, gradeData),
   uploadFiles: (files) => {
     const formData = new FormData();
     files.forEach(file => formData.append('files', file));
@@ -81,8 +82,18 @@ export const conversationAPI = {
   startConversation: (user1Id, user2Id) => api.post('/conversations/start', { user1Id, user2Id }),
   getMessages: (conversationId) => api.get(`/conversations/${conversationId}/messages`),
   sendMessage: (conversationId, senderId, content) => api.post(`/conversations/${conversationId}/messages`, { senderId, content }),
+  sendMessageWithFile: (conversationId, senderId, content, file) => {
+    const formData = new FormData();
+    formData.append('senderId', senderId);
+    formData.append('content', content);
+    formData.append('file', file);
+    return axios.post(`${API_BASE_URL}/conversations/${conversationId}/messages/upload`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+  },
   editMessage: (messageId, content) => api.put(`/conversations/messages/${messageId}`, { content }),
   deleteMessage: (messageId) => api.delete(`/conversations/messages/${messageId}`),
+  deleteConversation: (conversationId) => api.delete(`/conversations/${conversationId}`),
   getSideChats: (conversationId) => api.get(`/conversations/${conversationId}/sidechats`),
   createSideChat: (conversationId, title, createdBy) => api.post(`/conversations/${conversationId}/sidechats`, { title, createdBy }),
   deleteSideChat: (sideChatId) => api.delete(`/conversations/sidechats/${sideChatId}`),

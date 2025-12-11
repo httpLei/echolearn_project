@@ -8,6 +8,7 @@ import '../css/Assignments.css';
 function Assignments({ user, onLogout }) {
   const navigate = useNavigate();
   const [assignments, setAssignments] = useState([]);
+  const [allAssignments, setAllAssignments] = useState([]); // Keep all assignments for counts
   const [subjects, setSubjects] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -103,6 +104,19 @@ function Assignments({ user, onLogout }) {
       }));
       console.log('Processed assignments:', assignmentsData);
       setAssignments(assignmentsData);
+      
+      // Also fetch all assignments without filters for accurate counts
+      if (!isTeacher) {
+        const allParams = { sortBy };
+        const allResponse = await assignmentAPI.getByUser(user.id, allParams);
+        const allAssignmentsData = allResponse.data.map(a => ({
+          ...a,
+          subject: a.subject ? a.subject.subjectCode : 'N/A',
+          subjectId: a.subject ? a.subject.subjectId : null,
+          completed: a.completed || false
+        }));
+        setAllAssignments(allAssignmentsData);
+      }
     } catch (error) {
       console.error('Error fetching assignments:', error);
     } finally {
@@ -110,27 +124,30 @@ function Assignments({ user, onLogout }) {
     }
   };
 
-  // Calculate counts for tabs (keep in frontend for display only)
+  // Calculate counts for tabs (use allAssignments for accurate counts)
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const weekFromNow = new Date(today);
   weekFromNow.setDate(weekFromNow.getDate() + 7);
 
-  const overdueCount = assignments.filter(a => !a.completed && new Date(a.dueDate) < today).length;
-  const todayCount = assignments.filter(a => {
+  // Use allAssignments if available (for students), otherwise use assignments (for teachers)
+  const countsSource = !isTeacher && allAssignments.length > 0 ? allAssignments : assignments;
+
+  const overdueCount = countsSource.filter(a => !a.completed && new Date(a.dueDate) < today).length;
+  const todayCount = countsSource.filter(a => {
     if (a.completed) return false;
     const d = new Date(a.dueDate);
     d.setHours(0, 0, 0, 0);
     return d.getTime() === today.getTime();
   }).length;
-  const weekCount = assignments.filter(a => {
+  const weekCount = countsSource.filter(a => {
     if (a.completed) return false;
     const d = new Date(a.dueDate);
     d.setHours(0, 0, 0, 0);
     return d >= today && d <= weekFromNow;
   }).length;
-  const upcomingCount = assignments.filter(a => !a.completed && new Date(a.dueDate) > weekFromNow).length;
-  const completedCount = assignments.filter(a => a.completed).length;
+  const upcomingCount = countsSource.filter(a => !a.completed && new Date(a.dueDate) > weekFromNow).length;
+  const completedCount = countsSource.filter(a => a.completed).length;
 
   // No filtering needed - backend handles it
   const filteredAssignments = assignments;
@@ -255,7 +272,7 @@ function Assignments({ user, onLogout }) {
             className={`tab ${activeTab === 'all' ? 'active' : ''}`}
             onClick={() => setActiveTab('all')}
           >
-            All ({assignments.filter(a => !a.completed).length})
+            All ({countsSource.filter(a => !a.completed).length})
           </button>
           {!isTeacher && (
             <>

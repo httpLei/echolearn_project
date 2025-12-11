@@ -10,23 +10,30 @@ function Notifications({ user, onLogout }) {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('Unread');
   const [openMenuId, setOpenMenuId] = useState(null);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [totalCount, setTotalCount] = useState(0);
   const menuRef = useRef(null);
-  const unreadCount = notifications.filter(n => !n.isRead).length;
-  const totalCount = notifications.length;
 
   // Fetch notifications from backend with filter
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
         setLoading(true);
-        let response;
-        // Use backend filtering
+        // Always fetch both counts
+        const [allResponse, unreadResponse] = await Promise.all([
+          notificationAPI.getByUser(user.id),
+          notificationAPI.getUnread(user.id)
+        ]);
+        
+        // Update counts
+        setTotalCount(allResponse.data.length || 0);
+        setUnreadCount(unreadResponse.data.notifications?.length || 0);
+        
+        // Set displayed notifications based on filter
         if (filter === 'Unread') {
-          response = await notificationAPI.getUnread(user.id);
-          setNotifications(response.data.notifications || []);
+          setNotifications(unreadResponse.data.notifications || []);
         } else {
-          response = await notificationAPI.getByUser(user.id);
-          setNotifications(response.data);
+          setNotifications(allResponse.data);
         }
       } catch (error) {
         console.error('Error fetching notifications:', error);

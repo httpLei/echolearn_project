@@ -20,6 +20,11 @@ function Chat({ user, onLogout }) {
   const [allUsers, setAllUsers] = useState([]); // All users for search
   const [loading, setLoading] = useState(true);
   const [deleteSideChatModal, setDeleteSideChatModal] = useState({ isOpen: false, sideChatId: null });
+  const [editingMessage, setEditingMessage] = useState(null);
+  const [editMessageText, setEditMessageText] = useState('');
+  const [openMessageMenu, setOpenMessageMenu] = useState(null);
+  const [deleteConversationModal, setDeleteConversationModal] = useState({ isOpen: false, conversationId: null });
+  const [selectedFile, setSelectedFile] = useState(null);
   const fileInputRef = useRef(null);
   const messagesEndRef = useRef(null);
 
@@ -149,20 +154,39 @@ function Chat({ user, onLogout }) {
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
-    if (!messageText.trim() || !selectedChat) return;
+    if ((!messageText.trim() && !selectedFile) || !selectedChat) return;
 
     try {
-      const response = await conversationAPI.sendMessage(
-        selectedChat.id,
-        user.id,
-        messageText
-      );
+      let response;
+      
+      if (selectedFile) {
+        // Send message with file
+        response = await conversationAPI.sendMessageWithFile(
+          selectedChat.id,
+          user.id,
+          messageText,
+          selectedFile
+        );
+      } else {
+        // Send text-only message
+        response = await conversationAPI.sendMessage(
+          selectedChat.id,
+          user.id,
+          messageText
+        );
+      }
       
       setMessages([...messages, {
         ...response.data,
         isOwn: true
       }]);
       setMessageText('');
+      setSelectedFile(null);
+      
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
       
       // Refresh conversations to update last message
       fetchConversations();
@@ -174,24 +198,16 @@ function Chat({ user, onLogout }) {
 
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
-    if (!file || !selectedChat) return;
-
-    const fileMessage = {
-      id: Date.now(),
-      sender: 'You',
-      text: `📎 ${file.name}`,
-      time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-      isOwn: true,
-      avatar: user.username.charAt(0).toUpperCase(),
-      isFile: true,
-      fileType: file.type,
-      fileName: file.name
-    };
-
-    setMessages({
-      ...messages,
-      [selectedChat.id]: [...(messages[selectedChat.id] || []), fileMessage]
-    });
+    if (!file) return;
+    
+    setSelectedFile(file);
+  };
+  
+  const removeSelectedFile = () => {
+    setSelectedFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   const handleCreateSideChat = async () => {
@@ -275,6 +291,88 @@ function Chat({ user, onLogout }) {
     }
   };
 
+  const handleEditMessage = (message) => {
+    setEditingMessage(message.id);
+    setEditMessageText(message.content);
+    setOpenMessageMenu(null);
+  };
+
+  const handleSaveEdit = async (messageId, isSideChat = false) => {
+    if (!editMessageText.trim()) return;
+
+    try {
+      await conversationAPI.editMessage(messageId, editMessageText);
+      
+      if (isSideChat) {
+        setSideChatMessages(sideChatMessages.map(msg => 
+          msg.id === messageId ? { ...msg, content: editMessageText, isEdited: true } : msg
+        ));
+      } else {
+        setMessages(messages.map(msg => 
+          msg.id === messageId ? { ...msg, content: editMessageText, isEdited: true } : msg
+        ));
+      }
+      
+      setEditingMessage(null);
+      setEditMessageText('');
+    } catch (error) {
+      console.error('Error editing message:', error);
+      alert('Failed to edit message');
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingMessage(null);
+    setEditMessageText('');
+  };
+
+  const handleDeleteMessage = async (messageId, isSideChat = false) => {
+    if (!window.confirm('Are you sure you want to delete this message?')) return;
+
+    try {
+      await conversationAPI.deleteMessage(messageId);
+      
+      if (isSideChat) {
+        setSideChatMessages(sideChatMessages.map(msg => 
+          msg.id === messageId ? { ...msg, content: '[Message deleted]', isDeleted: true } : msg
+        ));
+      } else {
+        setMessages(messages.map(msg => 
+          msg.id === messageId ? { ...msg, content: '[Message deleted]', isDeleted: true } : msg
+        ));
+      }
+      
+      setOpenMessageMenu(null);
+    } catch (error) {
+      console.error('Error deleting message:', error);
+      alert('Failed to delete message');
+    }
+  };
+
+  const handleDeleteConversation = (conversationId, e) => {
+    e.stopPropagation();
+    setDeleteConversationModal({ isOpen: true, conversationId });
+  };
+
+  const confirmDeleteConversation = async () => {
+    const { conversationId } = deleteConversationModal;
+    setDeleteConversationModal({ isOpen: false, conversationId: null });
+
+    try {
+      await conversationAPI.deleteConversation(conversationId);
+      setChatUsers(chatUsers.filter(c => c.id !== conversationId));
+      
+      if (selectedChat?.id === conversationId) {
+        setSelectedChat(null);
+        setMessages([]);
+        setSideChats([]);
+      }
+    } catch (error) {
+      console.error('Error deleting conversation:', error);
+      alert('Failed to delete conversation');
+    }
+  };
+
   return (
     <Layout user={user} onLogout={onLogout} activePage="chat">
       <div className="chat-page-wrapper">
@@ -324,6 +422,18 @@ function Chat({ user, onLogout }) {
                     </div>
                     <p className="chat-user-last-message">{chatUser.lastMessage}</p>
                   </div>
+                  {chatUser.id && !searchQuery.trim() && (
+                    <button 
+                      className="btn-delete-conversation"
+                      onClick={(e) => handleDeleteConversation(chatUser.id, e)}
+                      title="Delete conversation"
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                      </svg>
+                    </button>
+                  )}
                 </div>
               ))
             )}
@@ -356,18 +466,104 @@ function Chat({ user, onLogout }) {
               <div className="chat-messages-area">
                 {(selectedSideChat ? sideChatMessages : messages).map((message) => {
                   const isOwn = message.senderId === user.id;
+                  const isSideChat = !!selectedSideChat;
+                  const isEditing = editingMessage === message.id;
+                  
                   return (
                     <div key={message.id} className={`message-wrapper ${isOwn ? 'own' : 'other'}`}>
                       {!isOwn && <div className="message-avatar">{message.avatar}</div>}
                       <div className="message-content">
                         {!isOwn && <div className="message-sender">{message.sender}</div>}
-                        <div className={`message-bubble ${isOwn ? 'own' : 'other'}`}>
-                          {message.content}
-                        </div>
+                        {isEditing ? (
+                          <div className="message-edit-form">
+                            <input
+                              type="text"
+                              className="message-edit-input"
+                              value={editMessageText}
+                              onChange={(e) => setEditMessageText(e.target.value)}
+                              onKeyPress={(e) => {
+                                if (e.key === 'Enter') {
+                                  handleSaveEdit(message.id, isSideChat);
+                                } else if (e.key === 'Escape') {
+                                  handleCancelEdit();
+                                }
+                              }}
+                              autoFocus
+                            />
+                            <div className="message-edit-actions">
+                              <button className="btn-save-edit" onClick={() => handleSaveEdit(message.id, isSideChat)}>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                  <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                              </button>
+                              <button className="btn-cancel-edit" onClick={handleCancelEdit}>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                                </svg>
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div>
+                            <div className={`message-bubble ${isOwn ? 'own' : 'other'} ${message.isDeleted ? 'deleted' : ''}`}>
+                              {message.content}
+                              {message.isEdited && !message.isDeleted && <span className="edited-label"> (edited)</span>}
+                            </div>
+                            {message.fileUrl && message.fileName && !message.isDeleted && (
+                              <div className="message-file-attachment">
+                                <a 
+                                  href={`http://localhost:8080/api/assignments/download/${message.fileUrl}`}
+                                  download={message.fileName}
+                                  className="file-download-link"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                >
+                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
+                                  </svg>
+                                  {message.fileName}
+                                </a>
+                              </div>
+                            )}
+                          </div>
+                        )}
                         <div className="message-time">
-                          {isOwn ? 'You' : message.sender} • {new Date(message.timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                          {isOwn ? 'You' : ''}{isOwn || !message.sender ? '' : ' • '}{new Date(message.timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
                         </div>
                       </div>
+                      {isOwn && !isEditing && !message.isDeleted && (
+                        <div className="message-actions">
+                          <button 
+                            className="btn-message-menu"
+                            onClick={() => setOpenMessageMenu(openMessageMenu === message.id ? null : message.id)}
+                          >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <circle cx="12" cy="12" r="1"></circle>
+                              <circle cx="12" cy="5" r="1"></circle>
+                              <circle cx="12" cy="19" r="1"></circle>
+                            </svg>
+                          </button>
+                          {openMessageMenu === message.id && (
+                            <div className="message-menu">
+                              <button onClick={() => handleEditMessage(message)}>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                </svg>
+                                Edit
+                              </button>
+                              <button onClick={() => handleDeleteMessage(message.id, isSideChat)} className="delete">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                  <polyline points="3 6 5 6 21 6"></polyline>
+                                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                </svg>
+                                Delete
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      )}
                       {isOwn && <div className="message-avatar own">{message.avatar}</div>}
                     </div>
                   );
@@ -376,35 +572,51 @@ function Chat({ user, onLogout }) {
               </div>
 
               <form className="chat-input-area" onSubmit={selectedSideChat ? handleSendSideChatMessage : handleSendMessage}>
+                {selectedFile && (
+                  <div className="file-preview">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
+                    </svg>
+                    <span>{selectedFile.name}</span>
+                    <button type="button" onClick={removeSelectedFile} className="btn-remove-file">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                      </svg>
+                    </button>
+                  </div>
+                )}
                 <input
                   type="file"
                   ref={fileInputRef}
                   style={{ display: 'none' }}
                   onChange={handleFileUpload}
                 />
-                <button 
-                  type="button"
-                  className="btn-attach"
-                  onClick={() => fileInputRef.current.click()}
-                  title="Attach file"
-                >
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
-                  </svg>
-                </button>
-                <input
-                  type="text"
-                  className="chat-message-input"
-                  placeholder="Type your message..."
-                  value={messageText}
-                  onChange={(e) => setMessageText(e.target.value)}
-                />
-                <button type="submit" className="btn-send-message">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <line x1="22" y1="2" x2="11" y2="13"></line>
-                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-                  </svg>
-                </button>
+                <div>
+                  <button 
+                    type="button"
+                    className="btn-attach"
+                    onClick={() => fileInputRef.current.click()}
+                    title="Attach file"
+                  >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
+                    </svg>
+                  </button>
+                  <input
+                    type="text"
+                    className="chat-message-input"
+                    placeholder="Type your message..."
+                    value={messageText}
+                    onChange={(e) => setMessageText(e.target.value)}
+                  />
+                  <button type="submit" className="btn-send-message">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <line x1="22" y1="2" x2="11" y2="13"></line>
+                      <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                    </svg>
+                  </button>
+                </div>
               </form>
             </>
           ) : (
@@ -530,6 +742,33 @@ function Chat({ user, onLogout }) {
                 <button 
                   className="btn-modal-delete" 
                   onClick={confirmDeleteSideChat}
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Delete Conversation Modal */}
+        {deleteConversationModal.isOpen && (
+          <div className="delete-modal-overlay" onClick={() => setDeleteConversationModal({ isOpen: false, conversationId: null })}>
+            <div className="delete-modal-content" onClick={(e) => e.stopPropagation()}>
+              <div className="delete-icon-wrapper">
+                <i className="fas fa-trash"></i>
+              </div>
+              <h2 className="delete-modal-title">Delete Conversation?</h2>
+              <p className="delete-modal-text">Are you sure you want to delete this conversation? All messages and side chats will be permanently removed.</p>
+              <div className="delete-modal-actions">
+                <button 
+                  className="btn-modal-cancel" 
+                  onClick={() => setDeleteConversationModal({ isOpen: false, conversationId: null })}
+                >
+                  Cancel
+                </button>
+                <button 
+                  className="btn-modal-delete" 
+                  onClick={confirmDeleteConversation}
                 >
                   Delete
                 </button>

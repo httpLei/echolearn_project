@@ -27,6 +27,12 @@ function AssignmentDetail({ user, onLogout }) {
     allowLateSubmission: true,
     maxPoints: 100
   });
+  const [isGradingMode, setIsGradingMode] = useState(false);
+  const [selectedSubmission, setSelectedSubmission] = useState(null);
+  const [gradeForm, setGradeForm] = useState({
+    grade: '',
+    feedback: ''
+  });
 
   useEffect(() => {
     if (id && user) {
@@ -51,7 +57,11 @@ function AssignmentDetail({ user, onLogout }) {
         professor: assignmentData.subject?.teacher?.username || assignmentData.subject?.teacher?.name || 'Unknown',
         points: assignmentData.maxPoints || 100, // Use maxPoints from backend, default to 100 if not set
         allowLateSubmission: assignmentData.allowLateSubmission !== null ? assignmentData.allowLateSubmission : true,
-        attachments: assignmentData.fileNames ? assignmentData.fileNames.split(',').filter(f => f.trim()) : []
+        // Parse attachments: format is 'uuid|originalname'
+        attachments: assignmentData.fileNames ? assignmentData.fileNames.split(',').filter(f => f.trim()).map(f => {
+          const parts = f.trim().split('|');
+          return parts.length === 2 ? { uuid: parts[0], name: parts[1] } : { uuid: f.trim(), name: f.trim() };
+        }) : []
       };
       
       console.log('Formatted attachments:', formattedAssignment.attachments);
@@ -85,20 +95,25 @@ function AssignmentDetail({ user, onLogout }) {
         }
       }
       
-      // Fetch submission if assignment is completed and user is student
-      if (assignmentData.completed && user && user.role === 'STUDENT') {
+      // Fetch submission for students (always check, not just if completed flag is true)
+      if (user && user.role === 'STUDENT') {
         try {
           const submissionResponse = await assignmentAPI.getSubmission(id, user.id);
           const submissionData = submissionResponse.data;
-          setSubmission({
-            ...submissionData,
-            fileNames: submissionData.fileNames ? submissionData.fileNames.split(',') : [],
-            text: submissionData.submissionText || ''
-          });
-          // Also populate the form fields for editing
-          setSubmissionText(submissionData.submissionText || '');
+          if (submissionData) {
+            setSubmission({
+              ...submissionData,
+              fileNames: submissionData.fileNames ? submissionData.fileNames.split(',') : [],
+              text: submissionData.submissionText || ''
+            });
+            // Also populate the form fields for editing
+            setSubmissionText(submissionData.submissionText || '');
+          }
         } catch (error) {
-          console.error('Error fetching submission:', error);
+          // If 404, no submission exists yet - that's fine
+          if (error.response?.status !== 404) {
+            console.error('Error fetching submission:', error);
+          }
         }
       }
     } catch (error) {
@@ -171,6 +186,31 @@ function AssignmentDetail({ user, onLogout }) {
       alert('Failed to unsubmit assignment. Please try again.');
     }
   };
+
+  const handleOpenGrading = (submission) => {
+    setSelectedSubmission(submission);
+    setGradeForm({
+      grade: submission.grade || '',
+      feedback: submission.feedback || ''
+    });
+    setIsGradingMode(true);
+  };
+
+  const handleSubmitGrade = async () => {
+    try {
+      await assignmentAPI.gradeSubmission(selectedSubmission.submissionId, {
+        grade: parseInt(gradeForm.grade),
+        feedback: gradeForm.feedback
+      });
+      alert('Grade submitted successfully');
+      setIsGradingMode(false);
+      fetchAssignment(); // Refresh to show updated grade
+    } catch (error) {
+      console.error('Error submitting grade:', error);
+      alert('Failed to submit grade');
+    }
+  };
+
   const handleUpdateAssignment = async () => {
     try {
       let uploadedFileNames = '';
@@ -347,10 +387,10 @@ function AssignmentDetail({ user, onLogout }) {
                   Attachments
                 </h2>
                 <div className="attachments-list">
-                  {assignment.attachments.map((fileName, index) => (
+                  {assignment.attachments.map((file, index) => (
                     <a 
                       key={index} 
-                      href={assignmentAPI.downloadFile(fileName)} 
+                      href={assignmentAPI.downloadFile(file.uuid)} 
                       download
                       className="attachment-item"
                       target="_blank"
@@ -361,7 +401,7 @@ function AssignmentDetail({ user, onLogout }) {
                         <polyline points="14 2 14 8 20 8"></polyline>
                       </svg>
                       <div className="attachment-info">
-                        <div className="attachment-name">{fileName}</div>
+                        <div className="attachment-name">{file.name}</div>
                         <div className="attachment-action">Click to download</div>
                       </div>
                     </a>
@@ -424,8 +464,26 @@ function AssignmentDetail({ user, onLogout }) {
                               </div>
                             )}
                             
-                            <div className="submission-status-badge">
-                              {sub.status}
+                            <div className="submission-footer">
+                              <div className="submission-grade">
+                                {sub.grade !== null && sub.grade !== undefined ? (
+                                  <div className="grade-display">
+                                    <strong>Grade:</strong> {sub.grade}/{assignment.points}
+                                  </div>
+                                ) : (
+                                  <div className="grade-pending">Not graded yet</div>
+                                )}
+                              </div>
+                              <button 
+                                className="btn-grade"
+                                onClick={() => handleOpenGrading(sub)}
+                              >
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                </svg>
+                                {sub.grade !== null && sub.grade !== undefined ? 'Update Grade' : 'Grade'}
+                              </button>
                             </div>
                           </div>
                         ))}
@@ -442,7 +500,7 @@ function AssignmentDetail({ user, onLogout }) {
                       <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
                       <polyline points="22 4 12 14.01 9 11.01"></polyline>
                     </svg>
-                    <h3>Turned in</h3>
+                    <h3>Submitted</h3>
                     <p>Submitted on {formatDate(submission.submittedAt)}</p>
                   </div>
                   
@@ -577,6 +635,42 @@ function AssignmentDetail({ user, onLogout }) {
                 <div className="info-label">Late Submission</div>
                 <div className="info-value">{assignment.allowLateSubmission ? 'Allowed' : 'Not allowed'}</div>
               </div>
+              
+              {submission && (
+                submission.grade !== null && submission.grade !== undefined ? (
+                  <div className="grade-received">
+                    <div className="grade-header">
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                        <polyline points="10 9 9 9 8 9"></polyline>
+                      </svg>
+                      <h3>Graded</h3>
+                    </div>
+                    <div className="grade-score">
+                      <span className="score">{submission.grade}</span>
+                      <span className="total">/ {assignment.points}</span>
+                    </div>
+                    {submission.feedback && (
+                      <div className="grade-feedback">
+                        <h4>Teacher's Feedback:</h4>
+                        <p>{submission.feedback}</p>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="grade-pending-notice">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    <span>Waiting for grade</span>
+                  </div>
+                )
+              )}
+              
               {user.role === 'TEACHER' && (
                 <button 
                   className="btn-edit-assignment"
@@ -593,6 +687,101 @@ function AssignmentDetail({ user, onLogout }) {
           </div>
         </div>
         
+        {/* Grading Modal */}
+        {isGradingMode && selectedSubmission && (
+          <div className="modal-overlay" onClick={() => setIsGradingMode(false)}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-header">
+                <h2>Grade Submission</h2>
+                <button className="modal-close" onClick={() => setIsGradingMode(false)}>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </button>
+              </div>
+              
+              <div className="modal-body">
+                <div className="grading-student-info">
+                  <strong>Student:</strong> {selectedSubmission.student?.username || 'Unknown'}
+                  <br/>
+                  <strong>Submitted:</strong> {formatDate(selectedSubmission.submittedAt)}
+                </div>
+
+                {selectedSubmission.fileNames && (
+                  <div className="grading-files">
+                    <h4>Submitted Files:</h4>
+                    {selectedSubmission.fileNames.split(',').map((fileName, idx) => {
+                      const trimmed = fileName.trim();
+                      const parts = trimmed.split('|');
+                      const uuid = parts.length === 2 ? parts[0] : trimmed;
+                      const displayName = parts.length === 2 ? parts[1] : trimmed;
+                      return (
+                        <a 
+                          key={idx}
+                          href={assignmentAPI.downloadFile(uuid)}
+                          className="file-link"
+                          download
+                        >
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                          </svg>
+                          {displayName}
+                        </a>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {selectedSubmission.submissionText && (
+                  <div className="grading-text">
+                    <h4>Student Comments:</h4>
+                    <p>{selectedSubmission.submissionText}</p>
+                  </div>
+                )}
+
+                <div className="form-group">
+                  <label>Grade (out of {assignment.points})</label>
+                  <input
+                    type="number"
+                    className="form-input"
+                    min="0"
+                    max={assignment.points}
+                    value={gradeForm.grade}
+                    onChange={(e) => setGradeForm({...gradeForm, grade: e.target.value})}
+                    placeholder="Enter grade"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Feedback (Optional)</label>
+                  <textarea
+                    className="form-textarea"
+                    rows="4"
+                    value={gradeForm.feedback}
+                    onChange={(e) => setGradeForm({...gradeForm, feedback: e.target.value})}
+                    placeholder="Provide feedback to the student..."
+                  />
+                </div>
+              </div>
+              
+              <div className="modal-footer">
+                <button className="btn-secondary" onClick={() => setIsGradingMode(false)}>
+                  Cancel
+                </button>
+                <button 
+                  className="btn-primary" 
+                  onClick={handleSubmitGrade}
+                  disabled={!gradeForm.grade}
+                >
+                  Submit Grade
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Edit Assignment Modal */}
         {isEditMode && user.role === 'TEACHER' && (
           <div className="modal-overlay" onClick={() => setIsEditMode(false)}>
@@ -640,7 +829,7 @@ function AssignmentDetail({ user, onLogout }) {
                   </div>
                   
                   <div className="form-group">
-                    <label>Maximum Points</label>
+                    <label>Points</label>
                     <input
                       type="number"
                       className="form-input"

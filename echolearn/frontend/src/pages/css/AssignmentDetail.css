@@ -923,11 +923,19 @@
   color: var(--text-secondary);
   transition: all 0.2s;
   border-radius: 4px;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
 }
 
 .modal-close:hover {
   color: #E2852E;
   background: var(--bg-secondary);
+}
+
+.modal-close svg {
+  width: 20px;
+  height: 20px;
 }
 
 .modal-body {
@@ -973,5 +981,202 @@
     width: 95%;
     max-height: 95vh;
   }
+}
+
+/* Grading Modal Styles */
+.grading-student-info {
+  padding: 16px;
+  background: var(--bg-secondary);
+  border-radius: 8px;
+  margin-bottom: 20px;
+  line-height: 1.8;
+}
+
+.grading-files {
+  margin: 20px 0;
+}
+
+.grading-files h4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+}
+
+.file-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: var(--bg-secondary);
+  border-radius: 6px;
+  text-decoration: none;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+  transition: all 0.2s;
+}
+
+.file-link:hover {
+  background: #E2852E;
+  color: white;
+}
+
+.grading-text {
+  margin: 20px 0;
+  padding: 16px;
+  background: var(--bg-secondary);
+  border-radius: 8px;
+}
+
+.grading-text h4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.grading-text p {
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+/* Submission Card Grading Styles */
+.submission-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-color);
+}
+
+.submission-grade {
+  flex: 1;
+}
+
+.grade-display {
+  color: var(--text-primary);
+  font-size: 15px;
+}
+
+.grade-display strong {
+  color: #E2852E;
+}
+
+.grade-pending {
+  color: var(--text-secondary);
+  font-style: italic;
+  font-size: 14px;
+}
+
+.btn-grade {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: #E2852E;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.btn-grade:hover {
+  background: #d17628;
+  transform: translateY(-1px);
+}
+
+.btn-grade svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Student Grade Display */
+.grade-received {
+  margin-top: 24px;
+  padding: 24px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 12px;
+  border: 2px solid #ABE0F0;
+}
+
+.grade-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  color: #ABE0F0;
+}
+
+.grade-header svg {
+  width: 24px;
+  height: 24px;
+}
+
+.grade-header h3 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.grade-score {
+  text-align: center;
+  margin: 24px 0;
+}
+
+.grade-score .score {
+  font-size: 48px;
+  font-weight: 800;
+  color: #E2852E;
+  line-height: 1;
+}
+
+.grade-score .total {
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-left: 4px;
+}
+
+.grade-feedback {
+  margin-top: 20px;
+  padding: 16px;
+  background: white;
+  border-radius: 8px;
+}
+
+.grade-feedback h4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 8px 0;
+}
+
+.grade-feedback p {
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.grade-pending-notice {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 24px;
+  padding: 16px;
+  background: var(--bg-secondary);
+  border-radius: 8px;
+  color: var(--text-secondary);
+  font-size: 15px;
+  font-style: italic;
+}
+
+.grade-pending-notice svg {
+  width: 20px;
+  height: 20px;
 }
 

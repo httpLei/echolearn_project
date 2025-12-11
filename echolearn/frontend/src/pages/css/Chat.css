@@ -321,8 +321,95 @@
   border-top: 1px solid var(--border-color);
   background: var(--bg-primary);
   display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.chat-input-area > div:last-child {
+  display: flex;
   gap: 12px;
   align-items: center;
+}
+
+.file-preview {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.file-preview svg {
+  color: #E2852E;
+  flex-shrink: 0;
+}
+
+.file-preview span {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.btn-remove-file {
+  padding: 4px;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.btn-remove-file:hover {
+  background: #ef4444;
+  color: white;
+}
+
+.message-file-attachment {
+  margin-top: 8px;
+}
+
+.file-download-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-primary);
+  text-decoration: none;
+  font-size: 14px;
+  transition: all 0.2s;
+  max-width: 300px;
+}
+
+.file-download-link:hover {
+  background: var(--bg-primary);
+  border-color: #E2852E;
+  color: #E2852E;
+}
+
+.file-download-link svg {
+  flex-shrink: 0;
+  color: #E2852E;
+}
+
+.message-bubble.own + .message-file-attachment .file-download-link {
+  background: rgba(226, 133, 46, 0.1);
+  border-color: #E2852E;
+}
+
+.message-bubble.own + .message-file-attachment .file-download-link:hover {
+  background: rgba(226, 133, 46, 0.2);
 }
 
 .btn-attach {
@@ -779,4 +866,167 @@
 
 .btn-modal-delete:hover {
   background-color: #c97326;
+}
+
+/* Delete Conversation Button */
+.btn-delete-conversation {
+  padding: 6px;
+  background: transparent;
+  border: none;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s;
+  flex-shrink: 0;
+  display: none;
+}
+
+.chat-user-item:hover .btn-delete-conversation {
+  display: block;
+}
+
+.btn-delete-conversation:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+/* Message Actions */
+.message-wrapper {
+  position: relative;
+}
+
+.message-actions {
+  display: flex;
+  gap: 4px;
+  align-self: center;
+  margin-left: 8px;
+}
+
+.btn-message-menu {
+  padding: 4px 8px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition: all 0.2s;
+}
+
+.btn-message-menu:hover {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.message-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
+  background: white;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  min-width: 120px;
+  z-index: 100;
+  overflow: hidden;
+}
+
+.message-menu button {
+  width: 100%;
+  padding: 10px 16px;
+  border: none;
+  background: white;
+  color: var(--text-primary);
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-family: 'Poppins', sans-serif;
+}
+
+.message-menu button:hover {
+  background: var(--bg-secondary);
+}
+
+.message-menu button.delete {
+  color: #ef4444;
+}
+
+.message-menu button.delete:hover {
+  background: rgba(239, 68, 68, 0.1);
+}
+
+/* Message Edit Form */
+.message-edit-form {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.message-edit-input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-family: 'Poppins', sans-serif;
+}
+
+.message-edit-input:focus {
+  outline: none;
+  border-color: #E2852E;
+}
+
+.message-edit-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.btn-save-edit,
+.btn-cancel-edit {
+  padding: 6px 8px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-save-edit {
+  background: #10b981;
+  color: white;
+}
+
+.btn-save-edit:hover {
+  background: #059669;
+}
+
+.btn-cancel-edit {
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+}
+
+.btn-cancel-edit:hover {
+  background: var(--border-color);
+  color: var(--text-primary);
+}
+
+.edited-label {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  font-style: italic;
+}
+
+.message-bubble.deleted {
+  opacity: 0.6;
+  font-style: italic;
+  color: var(--text-secondary);
 }
