@@ -8,10 +8,12 @@ import com.core.echolearn.entity.Notification;
 import com.core.echolearn.service.ConversationService;
 import com.core.echolearn.service.UserService;
 import com.core.echolearn.service.NotificationService;
+import com.core.echolearn.service.FileStorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -29,6 +31,9 @@ public class ConversationController {
     
     @Autowired
     private NotificationService notificationService;
+    
+    @Autowired
+    private FileStorageService fileStorageService;
     
     // Get all conversations for a user
     @GetMapping("/user/{userId}")
@@ -115,6 +120,7 @@ public class ConversationController {
                 dto.put("content", msg.getContent());
                 dto.put("timestamp", msg.getTimestamp());
                 dto.put("isEdited", msg.getIsEdited());
+                dto.put("isDeleted", msg.getIsDeleted());
                 dto.put("avatar", msg.getSender().getUsername().substring(0, 1).toUpperCase());
                 
                 if (msg.getFileUrl() != null) {
@@ -185,6 +191,78 @@ public class ConversationController {
         }
     }
     
+    // Send message with file attachment
+    @PostMapping("/{conversationId}/messages/upload")
+    public ResponseEntity<?> sendMessageWithFile(
+            @PathVariable Long conversationId,
+            @RequestParam("senderId") Long senderId,
+            @RequestParam(value = "content", required = false, defaultValue = "") String content,
+            @RequestParam("file") MultipartFile file) {
+        try {
+            Optional<User> senderOpt = userService.findById(senderId);
+            if (!senderOpt.isPresent()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+            }
+            
+            // Store the file
+            String storedFileName = fileStorageService.storeFile(file);
+            String[] parts = storedFileName.split("\\|");
+            String fileUrl = parts[0]; // UUID
+            String originalFileName = parts.length > 1 ? parts[1] : file.getOriginalFilename();
+            
+            // Create message content with file info
+            String messageContent = content.isEmpty() ? "📎 " + originalFileName : content;
+            
+            // Send message with file information
+            Message message = conversationService.sendMessageWithFile(
+                conversationId, 
+                senderOpt.get(), 
+                messageContent,
+                fileUrl,
+                originalFileName,
+                file.getContentType()
+            );
+            
+            if (message != null) {
+                // Get the conversation to find the recipient
+                Optional<Conversation> convOpt = conversationService.findById(conversationId);
+                if (convOpt.isPresent()) {
+                    Conversation conversation = convOpt.get();
+                    User recipient = conversation.getUser1().getId().equals(senderId) ? 
+                                    conversation.getUser2() : conversation.getUser1();
+                    
+                    // Create notification for the recipient
+                    Notification notification = new Notification(
+                        "New Message",
+                        senderOpt.get().getUsername() + " sent you a file",
+                        "MESSAGE",
+                        conversationId
+                    );
+                    notification.setUser(recipient);
+                    notificationService.createNotification(notification);
+                }
+                
+                Map<String, Object> response = new HashMap<>();
+                response.put("id", message.getMessageId());
+                response.put("senderId", message.getSender().getId());
+                response.put("sender", message.getSender().getUsername());
+                response.put("content", message.getContent());
+                response.put("timestamp", message.getTimestamp());
+                response.put("avatar", message.getSender().getUsername().substring(0, 1).toUpperCase());
+                response.put("fileUrl", message.getFileUrl());
+                response.put("fileName", message.getFileName());
+                response.put("fileType", message.getFileType());
+                
+                return ResponseEntity.status(HttpStatus.CREATED).body(response);
+            }
+            
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Conversation not found");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Error: " + e.getMessage());
+        }
+    }
+    
     // Edit a message
     @PutMapping("/messages/{messageId}")
     public ResponseEntity<?> editMessage(@PathVariable Long messageId, @RequestBody Map<String, String> payload) {
@@ -214,6 +292,23 @@ public class ConversationController {
             }
             
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Message not found");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Error: " + e.getMessage());
+        }
+    }
+    
+    // Delete a conversation
+    @DeleteMapping("/{conversationId}")
+    public ResponseEntity<?> deleteConversation(@PathVariable Long conversationId) {
+        try {
+            boolean deleted = conversationService.deleteConversation(conversationId);
+            
+            if (deleted) {
+                return ResponseEntity.ok("Conversation deleted successfully");
+            }
+            
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Conversation not found");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body("Error: " + e.getMessage());

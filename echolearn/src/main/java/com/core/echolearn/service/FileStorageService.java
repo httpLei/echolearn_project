@@ -48,19 +48,30 @@ public class FileStorageService {
             Path targetLocation = this.fileStorageLocation.resolve(uniqueFileName);
             Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
 
-            return uniqueFileName;
+            // Return format: uuid|originalFileName for mapping
+            return uniqueFileName + "|" + originalFileName;
         } catch (IOException ex) {
             throw new RuntimeException("Could not store file " + originalFileName + ". Please try again!", ex);
         }
     }
 
     public Path loadFile(String fileName) {
-        return fileStorageLocation.resolve(fileName).normalize();
+        // Handle format: uuid|originalFileName
+        String actualFileName = fileName;
+        if (fileName.contains("|")) {
+            actualFileName = fileName.split("\\|")[0];
+        }
+        return fileStorageLocation.resolve(actualFileName).normalize();
     }
 
     public void deleteFile(String fileName) {
         try {
-            Path filePath = loadFile(fileName);
+            // Handle format: uuid|originalFileName
+            String actualFileName = fileName;
+            if (fileName.contains("|")) {
+                actualFileName = fileName.split("\\|")[0];
+            }
+            Path filePath = fileStorageLocation.resolve(actualFileName).normalize();
             Files.deleteIfExists(filePath);
         } catch (IOException ex) {
             throw new RuntimeException("Could not delete file " + fileName, ex);

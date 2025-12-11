@@ -78,6 +78,27 @@ public class ConversationService {
     }
     
     @Transactional
+    public Message sendMessageWithFile(Long conversationId, User sender, String content, String fileUrl, String fileName, String fileType) {
+        Optional<Conversation> conversationOpt = conversationRepository.findById(conversationId);
+        
+        if (conversationOpt.isPresent()) {
+            Conversation conversation = conversationOpt.get();
+            Message message = new Message(conversation, sender, content);
+            message.setFileUrl(fileUrl);
+            message.setFileName(fileName);
+            message.setFileType(fileType);
+            
+            // Update conversation's last message timestamp
+            conversation.setLastMessageAt(LocalDateTime.now());
+            conversationRepository.save(conversation);
+            
+            return messageRepository.save(message);
+        }
+        
+        return null;
+    }
+    
+    @Transactional
     public Message sendMessageToSideChat(Long sideChatId, User sender, String content) {
         Optional<SideChat> sideChatOpt = sideChatRepository.findById(sideChatId);
         
@@ -162,6 +183,19 @@ public class ConversationService {
             SideChat sideChat = sideChatOpt.get();
             sideChat.setIsDeleted(true);
             sideChatRepository.save(sideChat);
+            return true;
+        }
+        
+        return false;
+    }
+    
+    @Transactional
+    public boolean deleteConversation(Long conversationId) {
+        Optional<Conversation> conversationOpt = conversationRepository.findById(conversationId);
+        
+        if (conversationOpt.isPresent()) {
+            // Delete the conversation and cascade will handle messages and side chats
+            conversationRepository.deleteById(conversationId);
             return true;
         }
         

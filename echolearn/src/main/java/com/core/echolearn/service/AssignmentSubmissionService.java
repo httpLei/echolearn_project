@@ -79,4 +79,15 @@ public class AssignmentSubmissionService {
         }
         throw new IllegalArgumentException("Submission not found");
     }
+    
+    // Find submission by ID
+    public Optional<AssignmentSubmission> findById(Long submissionId) {
+        return submissionRepository.findById(submissionId);
+    }
+    
+    // Save submission
+    @Transactional
+    public AssignmentSubmission save(AssignmentSubmission submission) {
+        return submissionRepository.save(submission);
+    }
 }

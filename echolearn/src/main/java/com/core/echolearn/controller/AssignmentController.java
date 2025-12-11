@@ -507,4 +507,42 @@ public class AssignmentController {
                 .body("Error: " + e.getMessage());
         }
     }
+    
+    // Grade a submission
+    @PutMapping("/submissions/{submissionId}/grade")
+    public ResponseEntity<?> gradeSubmission(
+            @PathVariable Long submissionId,
+            @RequestBody Map<String, Object> gradeData) {
+        try {
+            Optional<AssignmentSubmission> submissionOpt = submissionService.findById(submissionId);
+            
+            if (!submissionOpt.isPresent()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("Submission not found");
+            }
+            
+            AssignmentSubmission submission = submissionOpt.get();
+            
+            // Extract grade and feedback from request
+            Integer grade = (Integer) gradeData.get("grade");
+            String feedback = (String) gradeData.get("feedback");
+            
+            if (grade == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Grade is required");
+            }
+            
+            // Update submission with grade and feedback
+            submission.setGrade(grade);
+            submission.setFeedback(feedback);
+            submission.setStatus("GRADED");
+            
+            AssignmentSubmission updatedSubmission = submissionService.save(submission);
+            
+            return ResponseEntity.ok(updatedSubmission);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Error: " + e.getMessage());
+        }
+    }
 }
