@@ -16,7 +16,8 @@ function CreateAssignment({ user, onLogout }) {
     estimatedTime: 60,
     difficulty: 'MEDIUM',
     subjectId: '',
-    allowLateSubmission: true
+    allowLateSubmission: true,
+    maxPoints: 100
   });
 
   useEffect(() => {
@@ -58,7 +59,8 @@ function CreateAssignment({ user, onLogout }) {
         user: null, // Teacher-created assignments are for all students
         completed: false,
         fileNames: uploadedFileNames || null,
-        allowLateSubmission: newAssignment.allowLateSubmission
+        allowLateSubmission: newAssignment.allowLateSubmission,
+        maxPoints: parseInt(newAssignment.maxPoints)
       };
       
       await assignmentAPI.create(assignmentData);
@@ -150,6 +152,20 @@ function CreateAssignment({ user, onLogout }) {
                 />
               </div>
               
+              <div className="form-group">
+                <label>Points *</label>
+                <input
+                  type="number"
+                  value={newAssignment.maxPoints}
+                  onChange={(e) => setNewAssignment({ ...newAssignment, maxPoints: e.target.value })}
+                  min="1"
+                  required
+                  placeholder="100"
+                />
+              </div>
+            </div>
+            
+            <div className="form-row">
               <div className="form-group">
                 <label>Estimated Time (minutes)</label>
                 <input

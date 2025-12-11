@@ -24,7 +24,8 @@ function AssignmentDetail({ user, onLogout }) {
     dueDate: '',
     estimatedTime: '',
     difficulty: 'MEDIUM',
-    allowLateSubmission: true
+    allowLateSubmission: true,
+    maxPoints: 100
   });
 
   useEffect(() => {
@@ -48,7 +49,7 @@ function AssignmentDetail({ user, onLogout }) {
         ...assignmentData,
         subject: assignmentData.subject?.subjectCode || 'N/A',
         professor: assignmentData.subject?.teacher?.username || assignmentData.subject?.teacher?.name || 'Unknown',
-        points: 100, // Default points, you can add this to backend
+        points: assignmentData.maxPoints || 100, // Use maxPoints from backend, default to 100 if not set
         allowLateSubmission: assignmentData.allowLateSubmission !== null ? assignmentData.allowLateSubmission : true,
         attachments: assignmentData.fileNames ? assignmentData.fileNames.split(',').filter(f => f.trim()) : []
       };
@@ -64,7 +65,8 @@ function AssignmentDetail({ user, onLogout }) {
         dueDate: assignmentData.dueDate || '',
         estimatedTime: assignmentData.estimatedTime || '',
         difficulty: assignmentData.difficulty || 'MEDIUM',
-        allowLateSubmission: assignmentData.allowLateSubmission !== null ? assignmentData.allowLateSubmission : true
+        allowLateSubmission: assignmentData.allowLateSubmission !== null ? assignmentData.allowLateSubmission : true,
+        maxPoints: assignmentData.maxPoints || 100
       });
       
       // Initialize edit files with existing attachments
@@ -190,7 +192,8 @@ function AssignmentDetail({ user, onLogout }) {
         estimatedTime: parseInt(editForm.estimatedTime),
         difficulty: editForm.difficulty,
         fileNames: allFileNames || null,
-        allowLateSubmission: editForm.allowLateSubmission
+        allowLateSubmission: editForm.allowLateSubmission,
+        maxPoints: parseInt(editForm.maxPoints)
       };
       
       await assignmentAPI.update(id, updatedAssignment);
@@ -637,6 +640,20 @@ function AssignmentDetail({ user, onLogout }) {
                   </div>
                   
                   <div className="form-group">
+                    <label>Maximum Points</label>
+                    <input
+                      type="number"
+                      className="form-input"
+                      value={editForm.maxPoints}
+                      onChange={(e) => setEditForm({...editForm, maxPoints: e.target.value})}
+                      min="1"
+                      required
+                    />
+                  </div>
+                </div>
+                
+                <div className="form-row">
+                  <div className="form-group">
                     <label>Estimated Time (minutes)</label>
                     <input
                       type="number"
@@ -645,19 +662,19 @@ function AssignmentDetail({ user, onLogout }) {
                       onChange={(e) => setEditForm({...editForm, estimatedTime: e.target.value})}
                     />
                   </div>
-                </div>
-                
-                <div className="form-group">
-                  <label>Difficulty</label>
-                  <select
-                    className="form-select"
-                    value={editForm.difficulty}
-                    onChange={(e) => setEditForm({...editForm, difficulty: e.target.value})}
-                  >
-                    <option value="EASY">Easy</option>
-                    <option value="MEDIUM">Medium</option>
-                    <option value="HARD">Hard</option>
-                  </select>
+                  
+                  <div className="form-group">
+                    <label>Difficulty</label>
+                    <select
+                      className="form-select"
+                      value={editForm.difficulty}
+                      onChange={(e) => setEditForm({...editForm, difficulty: e.target.value})}
+                    >
+                      <option value="EASY">Easy</option>
+                      <option value="MEDIUM">Medium</option>
+                      <option value="HARD">Hard</option>
+                    </select>
+                  </div>
                 </div>
                 
                 <div className="form-group">

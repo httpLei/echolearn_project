@@ -258,7 +258,7 @@
     background: white;
     border-radius: 12px;
     width: 90%;
-    max-width: 600px;
+    max-width: 700px;
     max-height: 90vh;
     overflow-y: auto;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
@@ -267,15 +267,18 @@
 .modal-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
     padding: 24px;
     border-bottom: 1px solid #eee;
+    text-align: left;
 }
 
 .modal-header h2 {
     margin: 0;
     font-size: 20px;
     color: #333;
+    text-align: left;
+    flex: 1;
+    margin-right: 50px;
 }
 
 .modal-close {
@@ -291,6 +294,7 @@
     align-items: center;
     justify-content: center;
     transition: color 0.3s;
+    flex-shrink: 0;
 }
 
 .modal-close:hover {
@@ -299,10 +303,12 @@
 
 .assignment-form {
     padding: 24px;
+    text-align: left;
 }
 
 .form-group {
     margin-bottom: 20px;
+    text-align: left;
 }
 
 .form-group label {
@@ -311,6 +317,7 @@
     font-weight: 500;
     color: #333;
     font-size: 14px;
+    text-align: left;
 }
 
 .form-group input,
@@ -323,6 +330,7 @@
     font-size: 14px;
     font-family: inherit;
     transition: border-color 0.3s;
+    text-align: left;
 }
 
 .form-group input:focus,

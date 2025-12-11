@@ -16,7 +16,8 @@ function ClassAssignments({ user, subjectId, subjectCode }) {
         dueDate: '',
         estimatedTime: 60,
         difficulty: 'MEDIUM',
-        allowLateSubmission: true
+        allowLateSubmission: true,
+        maxPoints: 100
     });
 
     useEffect(() => {
@@ -59,7 +60,8 @@ function ClassAssignments({ user, subjectId, subjectCode }) {
                 subject: { subjectId: parseInt(subjectId) },
                 user: null, // Teacher-created assignments are for all students
                 completed: false,
-                fileNames: uploadedFileNames || null
+                fileNames: uploadedFileNames || null,
+                maxPoints: parseInt(newAssignment.maxPoints)
             };
             
             await assignmentAPI.create(assignmentData);
@@ -72,7 +74,8 @@ function ClassAssignments({ user, subjectId, subjectCode }) {
                 dueDate: '',
                 estimatedTime: 60,
                 difficulty: 'MEDIUM',
-                allowLateSubmission: true
+                allowLateSubmission: true,
+                maxPoints: 100
             });
             
             fetchAssignments();
@@ -279,6 +282,20 @@ function ClassAssignments({ user, subjectId, subjectCode }) {
                                 </div>
                                 
                                 <div className="form-group">
+                                    <label>Points *</label>
+                                    <input
+                                        type="number"
+                                        value={newAssignment.maxPoints}
+                                        onChange={(e) => setNewAssignment({ ...newAssignment, maxPoints: e.target.value })}
+                                        min="1"
+                                        required
+                                        placeholder="100"
+                                    />
+                                </div>
+                            </div>
+                            
+                            <div className="form-row">
+                                <div className="form-group">
                                     <label>Estimated Time (minutes)</label>
                                     <input
                                         type="number"
@@ -287,18 +304,18 @@ function ClassAssignments({ user, subjectId, subjectCode }) {
                                         min="1"
                                     />
                                 </div>
-                            </div>
-                            
-                            <div className="form-group">
-                                <label>Difficulty</label>
-                                <select
-                                    value={newAssignment.difficulty}
-                                    onChange={(e) => setNewAssignment({ ...newAssignment, difficulty: e.target.value })}
-                                >
-                                    <option value="EASY">Easy</option>
-                                    <option value="MEDIUM">Medium</option>
-                                    <option value="HARD">Hard</option>
-                                </select>
+                                
+                                <div className="form-group">
+                                    <label>Difficulty</label>
+                                    <select
+                                        value={newAssignment.difficulty}
+                                        onChange={(e) => setNewAssignment({ ...newAssignment, difficulty: e.target.value })}
+                                    >
+                                        <option value="EASY">Easy</option>
+                                        <option value="MEDIUM">Medium</option>
+                                        <option value="HARD">Hard</option>
+                                    </select>
+                                </div>
                             </div>
                             
                             <div className="form-group">
