@@ -165,6 +165,7 @@ public class AssignmentController {
                         assignmentMap.put("subject", assignment.getSubject());
                         assignmentMap.put("user", assignment.getUser());
                         assignmentMap.put("fileNames", assignment.getFileNames());
+                        assignmentMap.put("maxPoints", assignment.getMaxPoints());
                         
                         // Check if student has submitted
                         boolean hasSubmitted = submissionService.hasSubmitted(assignment, user);
@@ -325,6 +326,7 @@ public class AssignmentController {
                         assignmentMap.put("createdAt", assignment.getCreatedAt());
                         assignmentMap.put("subject", assignment.getSubject());
                         assignmentMap.put("user", assignment.getUser());
+                        assignmentMap.put("maxPoints", assignment.getMaxPoints());
                         
                         // Check if student has submitted
                         boolean hasSubmitted = submissionService.hasSubmitted(assignment, user);

@@ -39,6 +39,9 @@ public class Assignment {
     @Column(name = "allow_late_submission")
     private Boolean allowLateSubmission;
     
+    @Column(name = "max_points")
+    private Integer maxPoints; // Maximum points for the assignment
+    
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = true)
     private User user;
@@ -165,5 +168,13 @@ public class Assignment {
     
     public void setAllowLateSubmission(Boolean allowLateSubmission) {
         this.allowLateSubmission = allowLateSubmission;
+    }
+    
+    public Integer getMaxPoints() {
+        return maxPoints;
+    }
+    
+    public void setMaxPoints(Integer maxPoints) {
+        this.maxPoints = maxPoints;
     }
 }
