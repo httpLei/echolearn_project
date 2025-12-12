@@ -74,6 +74,8 @@ export const chatAPI = {
 export const userAPI = {
   searchUsers: (query, currentUserId) => api.get(`/users/search?query=${query}&currentUserId=${currentUserId}`),
   getAllUsers: (currentUserId) => api.get(`/users/all?currentUserId=${currentUserId}`),
+  getCurrentUser: (userId) => api.get(`/users/${userId}`),
+  updateUser: (userId, userData) => api.put(`/users/${userId}`, userData),
 };
 
 // Conversation API

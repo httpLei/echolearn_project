@@ -22,10 +22,10 @@ public class Assignment {
     private LocalDate dueDate;
     
     @Column(name = "estimated_time")
-    private Integer estimatedTime; // in minutes
+    private Integer estimatedTime; 
     
     @Column(nullable = false)
-    private String difficulty; // EASY, MEDIUM, HARD
+    private String difficulty; 
     
     @Column(nullable = false)
     private Boolean completed;
@@ -40,7 +40,7 @@ public class Assignment {
     private Boolean allowLateSubmission;
     
     @Column(name = "max_points")
-    private Integer maxPoints; // Maximum points for the assignment
+    private Integer maxPoints; 
     
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = true)
@@ -58,7 +58,7 @@ public class Assignment {
         }
     }
     
-    // Constructors
+    
     public Assignment() {
     }
     
@@ -73,7 +73,7 @@ public class Assignment {
         this.completed = false;
     }
     
-    // Getters and Setters
+    
     public Long getActivityId() {
         return activityId;
     }
