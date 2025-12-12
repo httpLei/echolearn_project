@@ -10,11 +10,12 @@ import AssignmentDetail from './pages/jsx/AssignmentDetail.jsx';
 import Notifications from './pages/jsx/Notifications.jsx';
 import Chat from './pages/jsx/Chat.jsx';
 import Calendar from './pages/jsx/Calendar.jsx';
-import ClassPage from './pages/jsx/ClassPage.jsx'; // ⭐️ New Import
+import ClassPage from './pages/jsx/ClassPage.jsx';
 import './App.css';
 
 function App() {
   const [user, setUser] = React.useState(null);
+  const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
     // Check if user is logged in (from localStorage)
@@ -22,6 +23,7 @@ function App() {
     if (savedUser) {
       setUser(JSON.parse(savedUser));
     }
+    setLoading(false);
   }, []);
 
   const handleLogin = (userData) => {
@@ -33,6 +35,21 @@ function App() {
     setUser(null);
     localStorage.removeItem('user');
   };
+
+  if (loading) {
+    return (
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        height: '100vh',
+        fontSize: '18px',
+        color: '#666'
+      }}>
+        Loading...
+      </div>
+    );
+  }
 
   return (
     <Router>
